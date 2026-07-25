@@ -21,6 +21,7 @@
             box-sizing: border-box;
             user-select: none;
             -webkit-user-select: none;
+            touch-action: manipulation;
         }
 
         .main-wrapper {
@@ -94,7 +95,7 @@
             margin-top: 5px;
         }
 
-        /* 從上往下掉落的選項球 (加大尺寸並優化觸控反應) */
+        /* 從上往下掉落的選項球 */
         .falling-option {
             position: absolute;
             width: 70px;
@@ -112,7 +113,6 @@
             box-shadow: 0 4px 8px rgba(0,0,0,0.15);
             animation: fall linear forwards;
             z-index: 10;
-            touch-action: manipulation;
         }
         .falling-option:active { transform: scale(0.9); }
 
@@ -128,7 +128,7 @@
         }
 
         button#start-btn, .control-btn { 
-            padding: 10px 25px; 
+            padding: 12px 30px; 
             font-size: 20px; 
             background: #3b82f6; 
             color: white; 
@@ -137,6 +137,7 @@
             cursor: pointer; 
             box-shadow: 0 4px 10px rgba(59,130,246,0.3);
             font-weight: bold;
+            touch-action: manipulation;
         }
         button#start-btn:hover, .control-btn:hover { background: #2563eb; }
         
@@ -155,7 +156,7 @@
     <div id="home-screen">
         <h1 style="font-size: 38px; color: #1e293b; margin-bottom: 10px;">🌟 數學冒險遊戲</h1>
         <p style="color: #64748b; font-size: 16px; margin-bottom: 25px;">點擊掉落的正確答案，一起來闖關！</p>
-        <button id="start-btn" onclick="initGame()">開始玩遊戲</button>
+        <button id="start-btn">開始玩遊戲</button>
     </div>
 
     <!-- 遊戲中畫面 -->
@@ -174,7 +175,7 @@
 
         <!-- 暫停按鈕區 -->
         <div class="btn-group">
-            <button id="pause-btn" class="control-btn" onclick="togglePause()">暫停遊戲</button>
+            <button id="pause-btn" class="control-btn">暫停遊戲</button>
         </div>
     </div>
 </div>
@@ -254,7 +255,6 @@
         }
 
         function initGame() {
-            // 💡 透過點擊「開始遊戲」按鈕來全面解鎖 Samsung 與 Asus 的音訊與語音核心
             if (!audioCtx) {
                 audioCtx = new (window.AudioContext || window.webkitAudioContext)();
             }
@@ -269,7 +269,11 @@
             score = 0;
             totalSeconds = 0;
             isPaused = false;
-            document.getElementById('pause-btn').innerText = "暫停遊戲";
+            
+            const pauseBtn = document.getElementById('pause-btn');
+            pauseBtn.innerText = "暫停遊戲";
+            pauseBtn.style.backgroundColor = "#d97706";
+
             document.getElementById('score').innerText = `闖關: ${score}`;
             startTimer();
             loadQuestion();
@@ -355,7 +359,7 @@
             el.className = 'falling-option';
             el.innerText = val;
 
-            const randomX = Math.random() * (container.clientWidth - 75);
+            const randomX = Math.random() * (container.clientWidth - 70);
             el.style.left = randomX + 'px';
             
             const duration = 3.5 + Math.random();
@@ -365,7 +369,6 @@
                 el.style.animationPlayState = 'paused';
             }
 
-            // 💡 同時支援點擊與手機觸控（touchstart），解決 Asus 與 Samsung 手機點擊無反應問題
             let isHandled = false;
             const handleSelect = function(e) {
                 e.preventDefault();
@@ -439,6 +442,28 @@
             d.className = 'dot';
             return d;
         }
+
+        // 綁定按鈕事件，支援 Asus 與 Samsung 手機
+        window.addEventListener('DOMContentLoaded', () => {
+            const startBtn = document.getElementById('start-btn');
+            const pauseBtn = document.getElementById('pause-btn');
+
+            if (startBtn) {
+                startBtn.addEventListener('click', initGame);
+                startBtn.addEventListener('touchstart', (e) => {
+                    e.preventDefault();
+                    initGame();
+                }, { passive: false });
+            }
+
+            if (pauseBtn) {
+                pauseBtn.addEventListener('click', togglePause);
+                pauseBtn.addEventListener('touchstart', (e) => {
+                    e.preventDefault();
+                    togglePause();
+                }, { passive: false });
+            }
+        });
     </script>
 </body>
 </html>
