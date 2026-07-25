@@ -95,11 +95,11 @@
             margin-top: 5px;
         }
 
-        /* 從上往下掉落的選項球 */
+        /* 從上往下掉落的選項球 (強制開啟點擊穿透與最高層級) */
         .falling-option {
             position: absolute;
-            width: 70px;
-            height: 70px;
+            width: 75px;
+            height: 75px;
             background: radial-gradient(circle, #fde047 60%, #eab308 100%);
             border: 3px solid #ca8a04;
             border-radius: 50%;
@@ -110,9 +110,11 @@
             font-weight: bold;
             color: #78350f;
             cursor: pointer;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
             animation: fall linear forwards;
-            z-index: 10;
+            z-index: 999;
+            pointer-events: auto;
+            -webkit-tap-highlight-color: transparent;
         }
         .falling-option:active { transform: scale(0.9); }
 
@@ -128,8 +130,8 @@
         }
 
         button#start-btn, .control-btn { 
-            padding: 12px 30px; 
-            font-size: 20px; 
+            padding: 15px 35px; 
+            font-size: 22px; 
             background: #3b82f6; 
             color: white; 
             border: none; 
@@ -138,6 +140,7 @@
             box-shadow: 0 4px 10px rgba(59,130,246,0.3);
             font-weight: bold;
             touch-action: manipulation;
+            z-index: 10;
         }
         button#start-btn:hover, .control-btn:hover { background: #2563eb; }
         
@@ -156,6 +159,7 @@
     <div id="home-screen">
         <h1 style="font-size: 38px; color: #1e293b; margin-bottom: 10px;">🌟 數學冒險遊戲</h1>
         <p style="color: #64748b; font-size: 16px; margin-bottom: 25px;">點擊掉落的正確答案，一起來闖關！</p>
+        <!-- 移除內聯 onclick，改由下方 JS 統一高相容性監聽 -->
         <button id="start-btn">開始玩遊戲</button>
     </div>
 
@@ -359,7 +363,7 @@
             el.className = 'falling-option';
             el.innerText = val;
 
-            const randomX = Math.random() * (container.clientWidth - 70);
+            const randomX = Math.random() * (container.clientWidth - 75);
             el.style.left = randomX + 'px';
             
             const duration = 3.5 + Math.random();
@@ -408,8 +412,8 @@
                 }
             };
 
-            el.addEventListener('click', handleSelect);
-            el.addEventListener('touchstart', handleSelect, { passive: false });
+            // 💡 使用 pointerdown，對 Asus 與 Android 手機的觸控與滑鼠相容性最好
+            el.addEventListener('pointerdown', handleSelect);
 
             el.addEventListener('animationend', () => {
                 el.remove();
@@ -443,25 +447,23 @@
             return d;
         }
 
-        // 綁定按鈕事件，支援 Asus 與 Samsung 手機
+        // 💡 使用更強健的事件監聽，完美支援 Asus、Samsung 與所有 Android 手機
         window.addEventListener('DOMContentLoaded', () => {
             const startBtn = document.getElementById('start-btn');
             const pauseBtn = document.getElementById('pause-btn');
 
             if (startBtn) {
-                startBtn.addEventListener('click', initGame);
-                startBtn.addEventListener('touchstart', (e) => {
+                startBtn.addEventListener('pointerdown', (e) => {
                     e.preventDefault();
                     initGame();
-                }, { passive: false });
+                });
             }
 
             if (pauseBtn) {
-                pauseBtn.addEventListener('click', togglePause);
-                pauseBtn.addEventListener('touchstart', (e) => {
+                pauseBtn.addEventListener('pointerdown', (e) => {
                     e.preventDefault();
                     togglePause();
-                }, { passive: false });
+                });
             }
         });
     </script>
