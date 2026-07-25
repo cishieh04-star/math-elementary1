@@ -20,6 +20,7 @@
             overflow: hidden; 
             box-sizing: border-box;
             user-select: none;
+            -webkit-user-select: none;
             touch-action: manipulation;
         }
 
@@ -97,28 +98,27 @@
         /* 從上往下掉落的選項球 */
         .falling-option {
             position: absolute;
-            width: 65px;
-            height: 65px;
+            width: 70px;
+            height: 70px;
             background: radial-gradient(circle, #fde047 60%, #eab308 100%);
             border: 3px solid #ca8a04;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 26px;
+            font-size: 28px;
             font-weight: bold;
             color: #78350f;
             cursor: pointer;
             box-shadow: 0 4px 8px rgba(0,0,0,0.15);
             animation: fall linear forwards;
-            transition: transform 0.1s;
             z-index: 10;
         }
-        .falling-option:hover { transform: scale(1.15); }
+        .falling-option:active { transform: scale(0.9); }
 
         @keyframes fall {
             0% { top: -75px; }
-            100% { top: 100px; }
+            100% { top: 90px; }
         }
 
         .btn-group {
@@ -128,7 +128,7 @@
         }
 
         button#start-btn, .control-btn { 
-            padding: 10px 25px; 
+            padding: 12px 30px; 
             font-size: 20px; 
             background: #3b82f6; 
             color: white; 
@@ -137,6 +137,7 @@
             cursor: pointer; 
             box-shadow: 0 4px 10px rgba(59,130,246,0.3);
             font-weight: bold;
+            touch-action: manipulation;
         }
         button#start-btn:hover, .control-btn:hover { background: #2563eb; }
         
@@ -155,7 +156,7 @@
     <div id="home-screen">
         <h1 style="font-size: 38px; color: #1e293b; margin-bottom: 10px;">🌟 數學冒險遊戲</h1>
         <p style="color: #64748b; font-size: 16px; margin-bottom: 25px;">點擊掉落的正確答案，一起來闖關！</p>
-        <button id="start-btn" onclick="initGame()">開始玩遊戲</button>
+        <button id="start-btn">開始玩遊戲</button>
     </div>
 
     <!-- 遊戲中畫面 -->
@@ -174,7 +175,7 @@
 
         <!-- 暫停按鈕區 -->
         <div class="btn-group">
-            <button id="pause-btn" class="control-btn" onclick="togglePause()">暫停遊戲</button>
+            <button id="pause-btn" class="control-btn">暫停遊戲</button>
         </div>
     </div>
 </div>
@@ -188,9 +189,10 @@
         let timerInterval = null;
         let totalSeconds = 0; 
         let audioCtx = null;
-        let optionsArr = []; // 儲存當前題目的選項陣列
+        let optionsArr = [];
 
         function speak(text) {
+            if (!window.speechSynthesis) return;
             window.speechSynthesis.cancel();
             const msg = new SpeechSynthesisUtterance(text);
             msg.lang = 'zh-TW';
@@ -202,11 +204,16 @@
             window.speechSynthesis.speak(msg);
         }
 
-        window.speechSynthesis.onvoiceschanged = () => {};
+        if (window.speechSynthesis) {
+            window.speechSynthesis.onvoiceschanged = () => {};
+        }
 
         function playSuccessSound() {
             if (!audioCtx) {
                 audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
             }
             let osc = audioCtx.createOscillator();
             let gain = audioCtx.createGain();
@@ -230,6 +237,9 @@
             if (!audioCtx) {
                 audioCtx = new (window.AudioContext || window.webkitAudioContext)();
             }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
             let osc = audioCtx.createOscillator();
             let gain = audioCtx.createGain();
             osc.connect(gain);
@@ -245,12 +255,25 @@
         }
 
         function initGame() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+            let unlockSpeech = new SpeechSynthesisUtterance('');
+            window.speechSynthesis.speak(unlockSpeech);
+
             document.getElementById('home-screen').style.display = 'none';
             document.getElementById('game-ui').style.display = 'flex';
             score = 0;
             totalSeconds = 0;
             isPaused = false;
-            document.getElementById('pause-btn').innerText = "暫停遊戲";
+            
+            const pauseBtn = document.getElementById('pause-btn');
+            pauseBtn.innerText = "暫停遊戲";
+            pauseBtn.style.backgroundColor = "#d97706";
+
             document.getElementById('score').innerText = `闖關: ${score}`;
             startTimer();
             loadQuestion();
@@ -320,7 +343,6 @@
                     return;
                 }
                 
-                // 💡 修改處：當選項全部掉完一輪後，將 index 歸零，讓選項無限循環掉落！
                 if (index >= optionsArr.length) {
                     index = 0;
                 }
@@ -337,7 +359,7 @@
             el.className = 'falling-option';
             el.innerText = val;
 
-            const randomX = Math.random() * (container.clientWidth - 75);
+            const randomX = Math.random() * (container.clientWidth - 70);
             el.style.left = randomX + 'px';
             
             const duration = 3.5 + Math.random();
@@ -347,9 +369,12 @@
                 el.style.animationPlayState = 'paused';
             }
 
-            el.onclick = function(e) {
+            let isHandled = false;
+            const handleSelect = function(e) {
+                e.preventDefault();
                 e.stopPropagation();
-                if (isAnswered || isPaused) return;
+                if (isAnswered || isPaused || isHandled) return;
+                isHandled = true;
 
                 if (val === currentAns) {
                     isAnswered = true;
@@ -383,6 +408,9 @@
                 }
             };
 
+            el.addEventListener('click', handleSelect);
+            el.addEventListener('touchstart', handleSelect, { passive: false });
+
             el.addEventListener('animationend', () => {
                 el.remove();
                 activeOptions = activeOptions.filter(item => item !== el);
@@ -414,6 +442,28 @@
             d.className = 'dot';
             return d;
         }
+
+        // 綁定按鈕事件，支援 Asus 與 Samsung 手機
+        window.addEventListener('DOMContentLoaded', () => {
+            const startBtn = document.getElementById('start-btn');
+            const pauseBtn = document.getElementById('pause-btn');
+
+            if (startBtn) {
+                startBtn.addEventListener('click', initGame);
+                startBtn.addEventListener('touchstart', (e) => {
+                    e.preventDefault();
+                    initGame();
+                }, { passive: false });
+            }
+
+            if (pauseBtn) {
+                pauseBtn.addEventListener('click', togglePause);
+                pauseBtn.addEventListener('touchstart', (e) => {
+                    e.preventDefault();
+                    togglePause();
+                }, { passive: false });
+            }
+        });
     </script>
 </body>
 </html>
