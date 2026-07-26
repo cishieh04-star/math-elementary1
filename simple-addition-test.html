@@ -129,7 +129,6 @@
             margin-top: 5px;
         }
 
-        /* 💡 放大按鈕尺寸與觸控回饋，確保各牌 Android 手機輕鬆點擊 */
         button#start-btn, .control-btn { 
             padding: 15px 40px; 
             font-size: 22px; 
@@ -156,7 +155,7 @@
 <body>
 
 <div class="main-wrapper">
-    <!-- 首頁畫面：使用原生 onclick，保證所有 Android 手機一按就通 -->
+    <!-- 首頁畫面 -->
     <div id="home-screen">
         <h1 style="font-size: 38px; color: #1e293b; margin-bottom: 10px;">🌟 數學冒險遊戲</h1>
         <p style="color: #64748b; font-size: 16px; margin-bottom: 25px;">點擊掉落的正確答案，一起來闖關！</p>
@@ -187,6 +186,7 @@
     <script>
         let currentAns, n1, n2, score = 0;
         let gameInterval = null;
+        let nextQuestionTimeout = null; // 用來追蹤答對後的等待計時器
         let activeOptions = [];
         let isAnswered = false;
         let isPaused = false;
@@ -313,11 +313,18 @@
                 activeOptions.forEach(el => {
                     el.style.animationPlayState = 'running';
                 });
+                
+                // 如果在答對後的等待期間按了暫停再繼續，直接安全進入下一題
+                if (isAnswered) {
+                    loadQuestion();
+                }
             }
         }
 
         function loadQuestion() {
             isAnswered = false;
+            if (nextQuestionTimeout) clearTimeout(nextQuestionTimeout);
+
             if (!isPaused) {
                 document.getElementById('feedback').innerText = "注意看！答案掉下來囉！";
             }
@@ -398,7 +405,8 @@
                     activeOptions.forEach(opt => opt.remove());
                     activeOptions = [];
 
-                    setTimeout(() => {
+                    // 記錄等待計時器，避免暫停時計時亂掉
+                    nextQuestionTimeout = setTimeout(() => {
                         if (!isPaused) loadQuestion();
                     }, 3000);
                 } else {
@@ -412,7 +420,6 @@
                 }
             };
 
-            // 同時支援點擊與觸控事件，確保掉落球也能順利點擊
             el.addEventListener('click', handleSelect);
             el.addEventListener('touchstart', handleSelect, { passive: false });
 
