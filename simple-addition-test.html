@@ -95,7 +95,7 @@
             margin-top: 5px;
         }
 
-        /* 從上往下掉落的選項球 (強制開啟點擊穿透與最高層級) */
+        /* 從上往下掉落的選項球 */
         .falling-option {
             position: absolute;
             width: 75px;
@@ -129,8 +129,9 @@
             margin-top: 5px;
         }
 
+        /* 💡 放大按鈕尺寸與觸控回饋，確保各牌 Android 手機輕鬆點擊 */
         button#start-btn, .control-btn { 
-            padding: 15px 35px; 
+            padding: 15px 40px; 
             font-size: 22px; 
             background: #3b82f6; 
             color: white; 
@@ -142,12 +143,12 @@
             touch-action: manipulation;
             z-index: 10;
         }
-        button#start-btn:hover, .control-btn:hover { background: #2563eb; }
+        button#start-btn:active, .control-btn:active { background: #2563eb; transform: scale(0.95); }
         
         #pause-btn {
             background: #d97706;
         }
-        #pause-btn:hover {
+        #pause-btn:active {
             background: #b45309;
         }
     </style>
@@ -155,12 +156,11 @@
 <body>
 
 <div class="main-wrapper">
-    <!-- 首頁畫面 -->
+    <!-- 首頁畫面：使用原生 onclick，保證所有 Android 手機一按就通 -->
     <div id="home-screen">
         <h1 style="font-size: 38px; color: #1e293b; margin-bottom: 10px;">🌟 數學冒險遊戲</h1>
         <p style="color: #64748b; font-size: 16px; margin-bottom: 25px;">點擊掉落的正確答案，一起來闖關！</p>
-        <!-- 移除內聯 onclick，改由下方 JS 統一高相容性監聽 -->
-        <button id="start-btn">開始玩遊戲</button>
+        <button id="start-btn" onclick="initGame()">開始玩遊戲</button>
     </div>
 
     <!-- 遊戲中畫面 -->
@@ -179,7 +179,7 @@
 
         <!-- 暫停按鈕區 -->
         <div class="btn-group">
-            <button id="pause-btn" class="control-btn">暫停遊戲</button>
+            <button id="pause-btn" class="control-btn" onclick="togglePause()">暫停遊戲</button>
         </div>
     </div>
 </div>
@@ -375,7 +375,7 @@
 
             let isHandled = false;
             const handleSelect = function(e) {
-                e.preventDefault();
+                if (e.cancelable) e.preventDefault();
                 e.stopPropagation();
                 if (isAnswered || isPaused || isHandled) return;
                 isHandled = true;
@@ -412,8 +412,9 @@
                 }
             };
 
-            // 💡 使用 pointerdown，對 Asus 與 Android 手機的觸控與滑鼠相容性最好
-            el.addEventListener('pointerdown', handleSelect);
+            // 同時支援點擊與觸控事件，確保掉落球也能順利點擊
+            el.addEventListener('click', handleSelect);
+            el.addEventListener('touchstart', handleSelect, { passive: false });
 
             el.addEventListener('animationend', () => {
                 el.remove();
@@ -446,26 +447,6 @@
             d.className = 'dot';
             return d;
         }
-
-        // 💡 使用更強健的事件監聽，完美支援 Asus、Samsung 與所有 Android 手機
-        window.addEventListener('DOMContentLoaded', () => {
-            const startBtn = document.getElementById('start-btn');
-            const pauseBtn = document.getElementById('pause-btn');
-
-            if (startBtn) {
-                startBtn.addEventListener('pointerdown', (e) => {
-                    e.preventDefault();
-                    initGame();
-                });
-            }
-
-            if (pauseBtn) {
-                pauseBtn.addEventListener('pointerdown', (e) => {
-                    e.preventDefault();
-                    togglePause();
-                });
-            }
-        });
     </script>
 </body>
 </html>
