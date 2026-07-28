@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>數學冒險遊戲</title>
+    <title>簡單加法冒險遊戲</title>
     <!-- 引入灑花特效庫 -->
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <style>
@@ -115,6 +115,7 @@
             z-index: 999;
             pointer-events: auto;
             -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
         }
         .falling-option:active { transform: scale(0.9); }
 
@@ -156,14 +157,14 @@
 
 <div class="main-wrapper">
     <!-- 首頁畫面 -->
-    <div id="home-screen">
+    <div id="home-screen" style="display: flex;">
         <h1 style="font-size: 38px; color: #1e293b; margin-bottom: 10px;">🌟 數學冒險遊戲</h1>
         <p style="color: #64748b; font-size: 16px; margin-bottom: 25px;">點擊掉落的正確答案，一起來闖關！</p>
-        <button id="start-btn" onclick="initGame()">開始玩遊戲</button>
+        <button id="start-btn" type="button">開始玩遊戲</button>
     </div>
 
     <!-- 遊戲中畫面 -->
-    <div id="game-ui" style="display:none;">
+    <div id="game-ui" style="display: none;">
         <div id="status-bar">
             <div id="timer">時間: 00:00</div>
             <div id="score">闖關: 0</div>
@@ -178,7 +179,7 @@
 
         <!-- 暫停按鈕區 -->
         <div class="btn-group">
-            <button id="pause-btn" class="control-btn" onclick="togglePause()">暫停遊戲</button>
+            <button id="pause-btn" class="control-btn" type="button">暫停遊戲</button>
         </div>
     </div>
 </div>
@@ -186,7 +187,7 @@
     <script>
         let currentAns, n1, n2, score = 0;
         let gameInterval = null;
-        let nextQuestionTimeout = null; // 用來追蹤答對後的等待計時器
+        let nextQuestionTimeout = null; 
         let activeOptions = [];
         let isAnswered = false;
         let isPaused = false;
@@ -213,72 +214,96 @@
         }
 
         function playSuccessSound() {
-            if (!audioCtx) {
-                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            try {
+                if (!audioCtx) {
+                    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                }
+                if (audioCtx.state === 'suspended') {
+                    audioCtx.resume();
+                }
+                let osc = audioCtx.createOscillator();
+                let gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(350, audioCtx.currentTime);
+                osc.frequency.setValueAtTime(523.25, audioCtx.currentTime + 0.15); 
+                osc.frequency.setValueAtTime(659.25, audioCtx.currentTime + 0.3);  
+                osc.frequency.setValueAtTime(783.99, audioCtx.currentTime + 0.45); 
+
+                gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.7);
+
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.7);
+            } catch (e) {
+                console.log("Audio error:", e);
             }
-            if (audioCtx.state === 'suspended') {
-                audioCtx.resume();
-            }
-            let osc = audioCtx.createOscillator();
-            let gain = audioCtx.createGain();
-            osc.connect(gain);
-            gain.connect(audioCtx.destination);
-
-            osc.type = 'triangle';
-            osc.frequency.setValueAtTime(350, audioCtx.currentTime);
-            osc.frequency.setValueAtTime(523.25, audioCtx.currentTime + 0.15); 
-            osc.frequency.setValueAtTime(659.25, audioCtx.currentTime + 0.3);  
-            osc.frequency.setValueAtTime(783.99, audioCtx.currentTime + 0.45); 
-
-            gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
-            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.7);
-
-            osc.start();
-            osc.stop(audioCtx.currentTime + 0.7);
         }
 
         function playErrorSound() {
-            if (!audioCtx) {
-                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            }
-            if (audioCtx.state === 'suspended') {
-                audioCtx.resume();
-            }
-            let osc = audioCtx.createOscillator();
-            let gain = audioCtx.createGain();
-            osc.connect(gain);
-            gain.connect(audioCtx.destination);
+            try {
+                if (!audioCtx) {
+                    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                }
+                if (audioCtx.state === 'suspended') {
+                    audioCtx.resume();
+                }
+                let osc = audioCtx.createOscillator();
+                let gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
 
-            osc.frequency.setValueAtTime(200, audioCtx.currentTime);
-            osc.frequency.setValueAtTime(150, audioCtx.currentTime + 0.15);
-            gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
-            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+                osc.frequency.setValueAtTime(200, audioCtx.currentTime);
+                osc.frequency.setValueAtTime(150, audioCtx.currentTime + 0.15);
+                gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
 
-            osc.start();
-            osc.stop(audioCtx.currentTime + 0.3);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.3);
+            } catch (e) {
+                console.log("Audio error:", e);
+            }
         }
 
-        function initGame() {
-            if (!audioCtx) {
-                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        function initGame(e) {
+            if (e) {
+                e.preventDefault();
+                e.stopPropagation();
             }
-            if (audioCtx.state === 'suspended') {
-                audioCtx.resume();
-            }
-            let unlockSpeech = new SpeechSynthesisUtterance('');
-            window.speechSynthesis.speak(unlockSpeech);
 
-            document.getElementById('home-screen').style.display = 'none';
-            document.getElementById('game-ui').style.display = 'flex';
+            try {
+                if (!audioCtx) {
+                    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                }
+                if (audioCtx.state === 'suspended') {
+                    audioCtx.resume();
+                }
+                let unlockSpeech = new SpeechSynthesisUtterance('');
+                window.speechSynthesis.speak(unlockSpeech);
+            } catch (err) {
+                console.log("Audio init error:", err);
+            }
+
+            const homeScreen = document.getElementById('home-screen');
+            const gameUi = document.getElementById('game-ui');
+            if (homeScreen) homeScreen.style.display = 'none';
+            if (gameUi) gameUi.style.display = 'flex';
+
             score = 0;
             totalSeconds = 0;
             isPaused = false;
             
             const pauseBtn = document.getElementById('pause-btn');
-            pauseBtn.innerText = "暫停遊戲";
-            pauseBtn.style.backgroundColor = "#d97706";
+            if (pauseBtn) {
+                pauseBtn.innerText = "暫停遊戲";
+                pauseBtn.style.backgroundColor = "#d97706";
+            }
 
-            document.getElementById('score').innerText = `闖關: ${score}`;
+            const scoreEl = document.getElementById('score');
+            if (scoreEl) scoreEl.innerText = `闖關: ${score}`;
+
             startTimer();
             loadQuestion();
         }
@@ -290,31 +315,41 @@
                     totalSeconds++;
                     let m = Math.floor(totalSeconds / 60).toString().padStart(2, '0');
                     let s = (totalSeconds % 60).toString().padStart(2, '0');
-                    document.getElementById('timer').innerText = `時間: ${m}:${s}`;
+                    const timerEl = document.getElementById('timer');
+                    if (timerEl) timerEl.innerText = `時間: ${m}:${s}`;
                 }
             }, 1000);
         }
 
-        function togglePause() {
+        function togglePause(e) {
+            if (e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
             isPaused = !isPaused;
             const pauseBtn = document.getElementById('pause-btn');
             
             if (isPaused) {
-                pauseBtn.innerText = "繼續遊戲";
-                pauseBtn.style.backgroundColor = "#16a34a";
-                document.getElementById('feedback').innerText = "⏸️ 遊戲已暫停，去上洗手間吧！";
+                if (pauseBtn) {
+                    pauseBtn.innerText = "繼續遊戲";
+                    pauseBtn.style.backgroundColor = "#16a34a";
+                }
+                const feedbackEl = document.getElementById('feedback');
+                if (feedbackEl) feedbackEl.innerText = "⏸️ 遊戲已暫停，去上洗手間吧！";
                 activeOptions.forEach(el => {
                     el.style.animationPlayState = 'paused';
                 });
             } else {
-                pauseBtn.innerText = "暫停遊戲";
-                pauseBtn.style.backgroundColor = "#d97706";
-                document.getElementById('feedback').innerText = "▶️ 遊戲繼續！加油！";
+                if (pauseBtn) {
+                    pauseBtn.innerText = "暫停遊戲";
+                    pauseBtn.style.backgroundColor = "#d97706";
+                }
+                const feedbackEl = document.getElementById('feedback');
+                if (feedbackEl) feedbackEl.innerText = "▶️ 遊戲繼續！加油！";
                 activeOptions.forEach(el => {
                     el.style.animationPlayState = 'running';
                 });
                 
-                // 如果在答對後的等待期間按了暫停再繼續，直接安全進入下一題
                 if (isAnswered) {
                     loadQuestion();
                 }
@@ -326,7 +361,8 @@
             if (nextQuestionTimeout) clearTimeout(nextQuestionTimeout);
 
             if (!isPaused) {
-                document.getElementById('feedback').innerText = "注意看！答案掉下來囉！";
+                const feedbackEl = document.getElementById('feedback');
+                if (feedbackEl) feedbackEl.innerText = "注意看！答案掉下來囉！";
             }
             
             activeOptions.forEach(el => el.remove());
@@ -337,7 +373,8 @@
             else { n1 = 1; n2 = Math.floor(Math.random() * 9) + 1; }
             currentAns = n1 + n2;
             
-            document.getElementById('question').innerText = `${n1} + ${n2} = ?`;
+            const qEl = document.getElementById('question');
+            if (qEl) qEl.innerText = `${n1} + ${n2} = ?`;
             renderDots(n1, n2);
 
             speak(`${n1} 加 ${n2} 等於多少？`);
@@ -366,6 +403,8 @@
         function spawnFallingOption(val) {
             if (isAnswered) return;
             const container = document.getElementById('drop-game-container');
+            if (!container) return;
+
             const el = document.createElement('div');
             el.className = 'falling-option';
             el.innerText = val;
@@ -390,13 +429,16 @@
                 if (val === currentAns) {
                     isAnswered = true;
                     score++;
-                    document.getElementById('score').innerText = `闖關: ${score}`;
+                    const scoreEl = document.getElementById('score');
+                    if (scoreEl) scoreEl.innerText = `闖關: ${score}`;
                     
                     playSuccessSound();
                     confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 } });
 
-                    document.getElementById('question').innerText = `${n1} + ${n2} = ${currentAns}`;
-                    document.getElementById('feedback').innerText = "🎉 太棒了！答對囉！";
+                    const qEl = document.getElementById('question');
+                    if (qEl) qEl.innerText = `${n1} + ${n2} = ${currentAns}`;
+                    const feedbackEl = document.getElementById('feedback');
+                    if (feedbackEl) feedbackEl.innerText = "🎉 太棒了！答對囉！";
                     renderResultDots(currentAns);
                     
                     speak(`答案是${currentAns}，太棒了！`);
@@ -405,14 +447,14 @@
                     activeOptions.forEach(opt => opt.remove());
                     activeOptions = [];
 
-                    // 記錄等待計時器，避免暫停時計時亂掉
                     nextQuestionTimeout = setTimeout(() => {
                         if (!isPaused) loadQuestion();
                     }, 3000);
                 } else {
                     playErrorSound();
                     speak("再算算看喔！");
-                    document.getElementById('feedback').innerText = "❌ 答錯囉，找找看正確的數字！";
+                    const feedbackEl = document.getElementById('feedback');
+                    if (feedbackEl) feedbackEl.innerText = "❌ 答錯囉，找找看正確的數字！";
                     
                     el.style.transition = "opacity 0.3s";
                     el.style.opacity = "0";
@@ -434,6 +476,7 @@
 
         function renderDots(num1, num2) {
             let area = document.getElementById('visual-area');
+            if (!area) return;
             area.innerHTML = '';
             for(let i=0; i<num1; i++) area.appendChild(createDot());
             let sym = document.createElement('span');
@@ -445,6 +488,7 @@
 
         function renderResultDots(res) {
             let area = document.getElementById('visual-area');
+            if (!area) return;
             area.innerHTML = '';
             for(let i=0; i<res; i++) area.appendChild(createDot());
         }
@@ -454,6 +498,21 @@
             d.className = 'dot';
             return d;
         }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            const startBtn = document.getElementById('start-btn');
+            const pauseBtn = document.getElementById('pause-btn');
+
+            if (startBtn) {
+                startBtn.addEventListener('click', initGame);
+                startBtn.addEventListener('touchstart', initGame, { passive: false });
+            }
+
+            if (pauseBtn) {
+                pauseBtn.addEventListener('click', togglePause);
+                pauseBtn.addEventListener('touchstart', togglePause, { passive: false });
+            }
+        });
     </script>
 </body>
 </html>
