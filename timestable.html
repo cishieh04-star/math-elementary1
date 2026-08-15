@@ -2,29 +2,74 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>九九乘法互動遊戲</title>
     <style>
-        body { font-family: sans-serif; text-align: center; background-color: #fdf5e6; padding: 20px; touch-action: manipulation; margin: 0; overflow-x: hidden; }
-        h1 { color: #333; font-size: 28px; }
-        #startScreen { height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; background-color: #fdf5e6; }
-        .start-btn { padding: 20px 40px; font-size: 32px; font-weight: bold; background-color: #ff7f50; color: white; border-radius: 20px; cursor: pointer; box-shadow: 0px 5px 15px rgba(0,0,0,0.2); }
-        #gameScreen { display: none; }
-        .equation-container { display: flex; justify-content: center; align-items: center; font-size: 45px; margin: 20px 0 10px 0; font-weight: bold; }
-        .concept-text { font-size: 24px; color: #d2691e; margin-bottom: 20px; font-weight: bold; }
-        .visual-area { display: flex; flex-wrap: wrap; justify-content: center; gap: 15px; margin-bottom: 20px; min-height: 120px; }
-        .group-box { border: 3px solid #ffa07a; border-radius: 12px; padding: 8px; display: grid; gap: 5px; background-color: #fff; align-content: center; width: 60px; height: 100px; }
-        .dot { height: 14px; width: 14px; background-color: #ff6347; border-radius: 50%; }
-        .box { width: 120px; height: 80px; border: 4px dashed #333; display: flex; align-items: center; justify-content: center; background: white; margin: 0 10px; border-radius: 10px; font-size: 40px; }
-        #options { display: flex; flex-wrap: wrap; justify-content: center; max-width: 500px; margin: 10px auto; }
-        .option { width: 75px; height: 75px; background: #98fb98; border-radius: 15px; display: flex; align-items: center; justify-content: center; cursor: pointer; margin: 10px; font-weight: bold; font-size: 28px; transition: 0.2s; }
+        * { box-sizing: border-box; }
+        body { font-family: sans-serif; text-align: center; background-color: #fdf5e6; padding: 10px; touch-action: manipulation; margin: 0; overflow: hidden; height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        h1 { color: #333; font-size: 26px; margin: 5px 0; }
         
-        /* 傳統安全的 CSS 動畫 */
+        #startScreen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; background-color: #fdf5e6; z-index: 9999; }
+        .start-btn { padding: 20px 40px; font-size: 32px; font-weight: bold; background-color: #ff7f50; color: white; border-radius: 20px; cursor: pointer; box-shadow: 0px 5px 15px rgba(0,0,0,0.2); }
+        
+        #gameScreen { display: none; width: 100%; max-width: 580px; height: 98vh; flex-direction: column; align-items: center; justify-content: space-between; background: #fff; border-radius: 20px; border: 4px solid #ffa07a; padding: 10px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+        
+        /* 狀態列 (含闖關次數統計) */
+        .status-bar { display: flex; justify-content: space-around; width: 100%; font-size: 20px; font-weight: bold; color: #2c3e50; border-bottom: 2px solid #f3e5ab; padding-bottom: 6px; }
+
+        .equation-container { display: flex; justify-content: center; align-items: center; font-size: 38px; margin: 5px 0; font-weight: bold; }
+        .concept-text { font-size: 20px; color: #d2691e; margin-bottom: 5px; font-weight: bold; }
+        
+        .visual-area { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; min-height: 90px; align-items: center; }
+        .group-box { border: 3px solid #ffa07a; border-radius: 12px; padding: 6px; display: grid; gap: 4px; background-color: #fff; align-content: center; width: 55px; height: 85px; }
+        .dot { height: 12px; width: 12px; background-color: #ff6347; border-radius: 50%; }
+        .box { width: 100px; height: 65px; border: 4px dashed #333; display: flex; align-items: center; justify-content: center; background: white; margin: 0 10px; border-radius: 10px; font-size: 36px; }
+        
+        /* 俄羅斯方塊掉落答案區域 */
+        #drop-game-container {
+            position: relative;
+            width: 100%;
+            height: 160px;
+            background: #f1f5f9;
+            border: 3px solid #cbd5e1;
+            border-radius: 14px;
+            overflow: hidden;
+            touch-action: none;
+        }
+
+        /* 掉落的方塊選項 */
+        .falling-option {
+            position: absolute;
+            width: 70px;
+            height: 70px;
+            background: radial-gradient(circle, #98fb98 60%, #3cb371 100%);
+            border: 3px solid #2e8b57;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            font-weight: bold;
+            color: #1b4d3e;
+            cursor: pointer;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            animation: fall linear forwards;
+            z-index: 999;
+            pointer-events: auto;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .falling-option:active { transform: scale(0.9); }
+
         @keyframes fall {
+            0% { top: -75px; }
+            100% { top: 90px; }
+        }
+
+        @keyframes confetti-fall {
             0% { transform: translateY(0vh) rotate(0deg); opacity: 1; }
             100% { transform: translateY(100vh) rotate(360deg); opacity: 0; }
         }
-        .confetti { position: absolute; width: 10px; height: 10px; z-index: 999; top: -10px; animation: fall 1.5s linear forwards; }
+        .confetti { position: absolute; width: 10px; height: 10px; z-index: 999; top: -10px; animation: confetti-fall 1.5s linear forwards; }
     </style>
 </head>
 <body>
@@ -36,21 +81,32 @@
 
     <div id="gameScreen">
         <h1>九九乘法互動遊戲</h1>
+        <div class="status-bar">
+            <div id="timer">時間: 00:00</div>
+            <div id="score">已完成: 0 關</div>
+        </div>
         <div id="visualArea" class="visual-area"></div>
         <div class="equation-container">
             <span id="equationDisplay">4 × 4 ＝</span>
             <div class="box" id="dropTarget">?</div>
         </div>
         <div class="concept-text" id="conceptText"></div>
-        <div id="options"></div>
+        
+        <!-- 俄羅斯方塊掉落區 -->
+        <div id="drop-game-container"></div>
     </div>
 
     <script>
-        let isProcessing = false; // 防跳題鎖定機制
+        let isProcessing = false; 
+        let score = 0;
+        let startTime;
+        let timerInterval = null;
+        let gameInterval = null;
+        let activeOptions = [];
+        let currentProduct = 0;
 
-        // --- 完整保留您原本正確的語音抓取邏輯 ---
+        // --- 原本正確的語音抓取邏輯 ---
         let preferredVoice = null;
-
         function loadVoices() {
             let voices = window.speechSynthesis.getVoices();
             if (!voices || voices.length === 0) return;
@@ -66,18 +122,15 @@
         }
         window.speechSynthesis.onvoiceschanged = loadVoices;
         loadVoices(); 
-        // ----------------------------------------
 
         function speak(text) {
             window.speechSynthesis.cancel(); 
             const msg = new SpeechSynthesisUtterance(text);
             msg.lang = 'zh-TW';
             msg.rate = 0.85; 
-            
             if (preferredVoice) {
                 msg.voice = preferredVoice;
             }
-
             window.speechSynthesis.speak(msg);
         }
 
@@ -96,18 +149,34 @@
         document.getElementById('startBtn').onclick = () => {
             window.speechSynthesis.speak(new SpeechSynthesisUtterance(''));
             document.getElementById('startScreen').style.display = 'none';
-            document.getElementById('gameScreen').style.display = 'block';
+            document.getElementById('gameScreen').style.display = 'flex';
+            score = 0;
+            startTime = Date.now();
+            startTimer();
             generateQuestion();
         };
+
+        function startTimer() {
+            if (timerInterval) clearInterval(timerInterval);
+            timerInterval = setInterval(() => {
+                let diff = Math.floor((Date.now() - startTime) / 1000);
+                let m = Math.floor(diff / 60).toString().padStart(2, '0');
+                let s = (diff % 60).toString().padStart(2, '0');
+                document.getElementById('timer').innerText = `時間: ${m}:${s}`;
+            }, 1000);
+        }
 
         function generateQuestion() {
             isProcessing = false;
             document.getElementById('dropTarget').innerHTML = '?';
-            document.getElementById('options').innerHTML = '';
+            
+            activeOptions.forEach(el => el.remove());
+            activeOptions = [];
+            if (gameInterval) clearInterval(gameInterval);
 
             let numA = Math.floor(Math.random() * 8) + 2; 
             let numB = Math.floor(Math.random() * 8) + 2;
-            let product = numA * numB;
+            currentProduct = numA * numB;
             
             document.getElementById('equationDisplay').innerText = `${numA} × ${numB} ＝`;
             document.getElementById('conceptText').innerText = `（ ${numB} 個 ${numA} ）`;
@@ -120,41 +189,80 @@
             }
             document.getElementById('visualArea').innerHTML = visualHTML;
 
-            // 送出最純粹的發音指令
             speak(`${numA} 乘以 ${numB}，等於多少呢？`);
 
-            let options = [product];
+            let options = [currentProduct];
             while(options.length < 6) {
                 let ans = (Math.floor(Math.random() * 8) + 2) * (Math.floor(Math.random() * 8) + 2);
                 if(!options.includes(ans)) options.push(ans);
             }
             options.sort(() => Math.random() - 0.5);
 
-            options.forEach(val => {
-                let div = document.createElement('div');
-                div.className = 'option';
-                div.innerText = val;
-                div.onclick = () => {
-                    if (isProcessing) return; // 如果正在換題中，阻擋任何點擊
+            let index = 0;
+            gameInterval = setInterval(() => {
+                if (isProcessing) return;
+                if (index >= options.length) index = 0;
+                spawnFallingOption(options[index]);
+                index++;
+            }, 2000);
+        }
 
-                    if (val === product) {
-                        isProcessing = true; // 答對立即鎖定
-                        document.getElementById('dropTarget').innerText = val;
-                        
-                        triggerConfetti();
-                        speak(`太棒了！${val}。你答對了！`);
-                        
-                        // 死板地等待 3 秒，徹底斬斷微軟和 iOS 會提早換題的 Bug
-                        setTimeout(() => {
-                            generateQuestion();
-                        }, 3000);
+        function spawnFallingOption(val) {
+            if (isProcessing) return;
+            const container = document.getElementById('drop-game-container');
+            const el = document.createElement('div');
+            el.className = 'falling-option';
+            el.innerText = val;
 
-                    } else {
-                        speak("再試試看喔！");
-                    }
-                };
-                document.getElementById('options').appendChild(div);
+            const randomX = Math.random() * (container.clientWidth - 70);
+            el.style.left = randomX + 'px';
+            const duration = 4.5 + Math.random(); // 放慢速度以適合特教與小朋友操作
+            el.style.animationDuration = duration + 's';
+
+            let isHandled = false;
+            const handleSelect = function(e) {
+                if (e.cancelable) e.preventDefault();
+                e.stopPropagation();
+                if (isProcessing || isHandled) return;
+
+                if (val === currentProduct) {
+                    isProcessing = true; 
+                    isHandled = true;
+                    document.getElementById('dropTarget').innerText = val;
+                    
+                    score++;
+                    document.getElementById('score').innerText = `已完成: ${score} 關`;
+
+                    triggerConfetti();
+                    speak(`太棒了！${val}。你答對了！`);
+                    
+                    if (gameInterval) clearInterval(gameInterval);
+                    activeOptions.forEach(opt => opt.remove());
+                    activeOptions = [];
+
+                    setTimeout(() => {
+                        generateQuestion();
+                    }, 3000);
+
+                } else {
+                    isHandled = true;
+                    speak("再試試看喔！");
+                    el.style.transition = "opacity 0.3s";
+                    el.style.opacity = "0";
+                    setTimeout(() => el.remove(), 300);
+                }
+            };
+
+            el.addEventListener('click', handleSelect);
+            el.addEventListener('touchstart', handleSelect, { passive: false });
+
+            el.addEventListener('animationend', () => {
+                el.remove();
+                activeOptions = activeOptions.filter(item => item !== el);
             });
+
+            container.appendChild(el);
+            activeOptions.push(el);
         }
     </script>
 </body>
