@@ -165,6 +165,7 @@
             overflow: hidden;
             box-sizing: border-box;
             margin-top: 5px;
+            touch-action: none;
         }
 
         /* 掉落的數字球選項 */
@@ -228,7 +229,7 @@
     <div id="home-screen">
         <h1 style="font-size: 32px; color: #1e293b; margin-bottom: 10px;">🚂 1到20：火車過山洞</h1>
         <p style="color: #64748b; font-size: 15px; margin-bottom: 25px;">數字在 20 以內，間隔為 1，找出空格的正確數字！</p>
-        <button id="start-btn" onclick="initGame()">開始玩遊戲</button>
+        <button id="start-btn">開始玩遊戲</button>
     </div>
 
     <!-- 遊戲中畫面 -->
@@ -271,16 +272,7 @@
             window.speechSynthesis.cancel();
             const msg = new SpeechSynthesisUtterance(text);
             msg.lang = 'zh-TW';
-            
-            const voices = window.speechSynthesis.getVoices();
-            const femaleVoice = voices.find(v => v.lang.includes('zh-TW') && (v.name.includes('Mei-Jia') || v.name.toLowerCase().includes('female')));
-            if (femaleVoice) msg.voice = femaleVoice;
-            
             window.speechSynthesis.speak(msg);
-        }
-
-        if (window.speechSynthesis) {
-            window.speechSynthesis.onvoiceschanged = () => {};
         }
 
         function playSuccessSound() {
@@ -315,11 +307,19 @@
             osc.stop(audioCtx.currentTime + 0.3);
         }
 
-        function initGame() {
+        // 綁定按鈕事件（使用 addEventListener 搭配 touchend / click 以完美支援新版小米手機）
+        const startBtn = document.getElementById('start-btn');
+        const handleStartGame = (e) => {
+            if (e) e.preventDefault();
+            
+            // 解鎖音訊與語音合成
             if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
             if (audioCtx.state === 'suspended') audioCtx.resume();
-            let unlockSpeech = new SpeechSynthesisUtterance('');
-            window.speechSynthesis.speak(unlockSpeech);
+            
+            if (window.speechSynthesis) {
+                let unlockSpeech = new SpeechSynthesisUtterance('');
+                window.speechSynthesis.speak(unlockSpeech);
+            }
 
             document.getElementById('home-screen').style.display = 'none';
             document.getElementById('game-ui').style.display = 'flex';
@@ -334,7 +334,10 @@
             document.getElementById('score').innerText = `闖關: ${score}`;
             startTimer();
             loadQuestion();
-        }
+        };
+
+        startBtn.addEventListener('click', handleStartGame);
+        startBtn.addEventListener('touchend', handleStartGame, { passive: false });
 
         function startTimer() {
             if (timerInterval) clearInterval(timerInterval);
@@ -378,9 +381,8 @@
             activeOptions = [];
             if (gameInterval) clearInterval(gameInterval);
 
-            // 數字範圍縮小至 20 以內，間隔固定為 1 (例如 1~17 之間作為起點，連續 4 個車廂不超過 20)
             let step = 1;
-            let startNum = Math.floor(Math.random() * 17) + 1; // 1 到 17 之間
+            let startNum = Math.floor(Math.random() * 17) + 1; 
             
             trainSequence = [];
             for (let i = 0; i < 4; i++) {
