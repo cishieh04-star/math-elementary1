@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>九九乘法互動遊戲</title>
+    <title>九九乘法互動遊戲 (含暫停按鈕版)</title>
     <style>
         * { box-sizing: border-box; }
         body { 
@@ -27,7 +27,6 @@
         #startScreen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; background-color: #fdf5e6; z-index: 9999; }
         .start-btn { padding: 18px 36px; font-size: 28px; font-weight: bold; background-color: #ff7f50; color: white; border-radius: 20px; cursor: pointer; box-shadow: 0px 5px 15px rgba(0,0,0,0.2); }
         
-        /* 遊戲主畫面：使用安全高度與內距，確保平板絕對不被遮蓋 */
         #gameScreen { 
             display: none; 
             width: 100%; 
@@ -44,18 +43,39 @@
             margin: auto;
         }
         
-        /* 狀態列 (含闖關次數統計) */
-        .status-bar { display: flex; justify-content: space-around; width: 100%; font-size: 17px; font-weight: bold; color: #2c3e50; border-bottom: 2px solid #f3e5ab; padding-bottom: 4px; }
+        /* 狀態列 (含闖關次數統計與暫停按鈕) */
+        .status-bar { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            width: 100%; 
+            font-size: 16px; 
+            font-weight: bold; 
+            color: #2c3e50; 
+            border-bottom: 2px solid #f3e5ab; 
+            padding-bottom: 4px; 
+            padding-left: 5px;
+            padding-right: 5px;
+        }
+
+        .status-left { display: flex; gap: 15px; align-items: center; }
+
+        /* 暫停按鈕樣式 */
+        .pause-btn {
+            font-size: 15px; font-weight: bold; padding: 6px 14px;
+            background: #f59e0b; color: white; border: none; border-radius: 8px;
+            cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+        .pause-btn:active { transform: scale(0.95); }
 
         .equation-container { display: flex; justify-content: center; align-items: center; font-size: 32px; margin: 2px 0; font-weight: bold; }
-        .concept-text { font-size: 17px; color: #d2691e; margin-bottom: 2px; font-weight: bold; }
+        .concept-text { font-size: 17px; color: #d2691e; margin-bottom: 2px; font-weight: bold; min-height: 24px; }
         
         .visual-area { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; min-height: 75px; align-items: center; }
         .group-box { border: 2px solid #ffa07a; border-radius: 8px; padding: 3px; display: grid; gap: 2px; background-color: #fff; align-content: center; width: 45px; height: 68px; }
         .dot { height: 10px; width: 10px; background-color: #ff6347; border-radius: 50%; }
         .box { width: 80px; height: 50px; border: 3px dashed #333; display: flex; align-items: center; justify-content: center; background: white; margin: 0 6px; border-radius: 8px; font-size: 28px; }
         
-        /* 俄羅斯方塊掉落答案區域 */
         #drop-game-container {
             position: relative;
             width: 100%;
@@ -67,7 +87,6 @@
             touch-action: none;
         }
 
-        /* 掉落的方塊選項 */
         .falling-option {
             position: absolute;
             width: 60px;
@@ -112,8 +131,12 @@
     <div id="gameScreen">
         <h1>九九乘法互動遊戲</h1>
         <div class="status-bar">
-            <div id="timer">時間: 00:00</div>
-            <div id="score">已完成: 0 關</div>
+            <div class="status-left">
+                <div id="timer">時間: 00:00</div>
+                <div id="score">已完成: 0 關</div>
+            </div>
+            <!-- 暫停按鈕 -->
+            <button class="pause-btn" id="pauseBtn" onclick="togglePause()">⏸ 暫停</button>
         </div>
         <div id="visualArea" class="visual-area"></div>
         <div class="equation-container">
@@ -129,11 +152,12 @@
     <script>
         let isProcessing = false; 
         let score = 0;
-        let startTime;
+        let totalSeconds = 0;
         let timerInterval = null;
         let gameInterval = null;
         let activeOptions = [];
         let currentProduct = 0;
+        let isPaused = false;
 
         let preferredVoice = null;
         function loadVoices() {
@@ -180,7 +204,10 @@
             document.getElementById('startScreen').style.display = 'none';
             document.getElementById('gameScreen').style.display = 'flex';
             score = 0;
-            startTime = Date.now();
+            totalSeconds = 0;
+            isPaused = false;
+            document.getElementById('pauseBtn').innerText = "⏸ 暫停";
+            document.getElementById('pauseBtn').style.background = "#f59e0b";
             startTimer();
             generateQuestion();
         };
@@ -188,14 +215,38 @@
         function startTimer() {
             if (timerInterval) clearInterval(timerInterval);
             timerInterval = setInterval(() => {
-                let diff = Math.floor((Date.now() - startTime) / 1000);
-                let m = Math.floor(diff / 60).toString().padStart(2, '0');
-                let s = (diff % 60).toString().padStart(2, '0');
-                document.getElementById('timer').innerText = `時間: ${m}:${s}`;
+                if (!isPaused) {
+                    totalSeconds++;
+                    let m = Math.floor(totalSeconds / 60).toString().padStart(2, '0');
+                    let s = (totalSeconds % 60).toString().padStart(2, '0');
+                    document.getElementById('timer').innerText = `時間: ${m}:${s}`;
+                }
             }, 1000);
         }
 
+        // 暫停與繼續切換邏輯
+        function togglePause() {
+            isPaused = !isPaused;
+            const pauseBtn = document.getElementById('pauseBtn');
+            const conceptText = document.getElementById('conceptText');
+
+            if (isPaused) {
+                pauseBtn.innerText = "▶ 繼續";
+                pauseBtn.style.background = "#16a34a";
+                conceptText.innerText = "⏸️ 遊戲已暫停，可以慢慢思考喔！";
+                activeOptions.forEach(el => el.style.animationPlayState = 'paused');
+            } else {
+                pauseBtn.innerText = "⏸ 暫停";
+                pauseBtn.style.background = "#f59e0b";
+                conceptText.innerText = `（ ${currentNumB} 個 ${currentNumA} ）`; // 恢復提示
+                activeOptions.forEach(el => el.style.animationPlayState = 'running');
+            }
+        }
+
+        let currentNumA = 4, currentNumB = 4;
+
         function generateQuestion() {
+            if (isPaused) return;
             isProcessing = false;
             document.getElementById('dropTarget').innerHTML = '?';
             
@@ -203,22 +254,22 @@
             activeOptions = [];
             if (gameInterval) clearInterval(gameInterval);
 
-            let numA = Math.floor(Math.random() * 8) + 2; 
-            let numB = Math.floor(Math.random() * 8) + 2;
-            currentProduct = numA * numB;
+            currentNumA = Math.floor(Math.random() * 8) + 2; 
+            currentNumB = Math.floor(Math.random() * 8) + 2;
+            currentProduct = currentNumA * currentNumB;
             
-            document.getElementById('equationDisplay').innerText = `${numA} × ${numB} ＝`;
-            document.getElementById('conceptText').innerText = `（ ${numB} 個 ${numA} ）`;
+            document.getElementById('equationDisplay').innerText = `${currentNumA} × ${currentNumB} ＝`;
+            document.getElementById('conceptText').innerText = `（ ${currentNumB} 個 ${currentNumA} ）`;
 
             let visualHTML = '';
-            for(let i = 0; i < numB; i++) { 
+            for(let i = 0; i < currentNumB; i++) { 
                 visualHTML += `<div class="group-box" style="grid-template-columns: repeat(2, 1fr);">`;
-                for(let j = 0; j < numA; j++) { visualHTML += `<div class="dot"></div>`; }
+                for(let j = 0; j < currentNumA; j++) { visualHTML += `<div class="dot"></div>`; }
                 visualHTML += `</div>`;
             }
             document.getElementById('visualArea').innerHTML = visualHTML;
 
-            speak(`${numA} 乘以 ${numB}，等於多少呢？`);
+            speak(`${currentNumA} 乘以 ${currentNumB}，等於多少呢？`);
 
             let options = [currentProduct];
             while(options.length < 6) {
@@ -229,7 +280,7 @@
 
             let index = 0;
             gameInterval = setInterval(() => {
-                if (isProcessing) return;
+                if (isProcessing || isPaused) return;
                 if (index >= options.length) index = 0;
                 spawnFallingOption(options[index]);
                 index++;
@@ -237,7 +288,7 @@
         }
 
         function spawnFallingOption(val) {
-            if (isProcessing) return;
+            if (isProcessing || isPaused) return;
             const container = document.getElementById('drop-game-container');
             const el = document.createElement('div');
             el.className = 'falling-option';
@@ -248,11 +299,13 @@
             const duration = 4.5 + Math.random(); 
             el.style.animationDuration = duration + 's';
 
+            if (isPaused) el.style.animationPlayState = 'paused';
+
             let isHandled = false;
             const handleSelect = function(e) {
                 if (e.cancelable) e.preventDefault();
                 e.stopPropagation();
-                if (isProcessing || isHandled) return;
+                if (isProcessing || isHandled || isPaused) return;
 
                 if (val === currentProduct) {
                     isProcessing = true; 
@@ -270,7 +323,7 @@
                     activeOptions = [];
 
                     setTimeout(() => {
-                        generateQuestion();
+                        if (!isPaused) generateQuestion();
                     }, 3000);
 
                 } else {
