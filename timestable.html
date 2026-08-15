@@ -2,7 +2,7 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>九九乘法互動遊戲</title>
     <style>
         * { box-sizing: border-box; }
@@ -10,57 +10,59 @@
             font-family: sans-serif; 
             text-align: center; 
             background-color: #fdf5e6; 
-            padding: 10px; 
-            touch-action: manipulation; 
             margin: 0; 
+            padding: 5px; 
             min-height: 100vh; 
+            min-height: calc(100vh - env(safe-area-inset-bottom));
             display: flex; 
             flex-direction: column; 
             align-items: center; 
             justify-content: center; 
-            overflow: hidden; 
+            overflow-x: hidden; 
+            overflow-y: auto;
+            touch-action: manipulation; 
         }
-        h1 { color: #333; font-size: 24px; margin: 4px 0; }
+        h1 { color: #333; font-size: 22px; margin: 4px 0; }
         
-        #startScreen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; background-color: #fdf5e6; z-index: 9999; }
-        .start-btn { padding: 20px 40px; font-size: 32px; font-weight: bold; background-color: #ff7f50; color: white; border-radius: 20px; cursor: pointer; box-shadow: 0px 5px 15px rgba(0,0,0,0.2); }
+        #startScreen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; background-color: #fdf5e6; z-index: 9999; }
+        .start-btn { padding: 18px 36px; font-size: 28px; font-weight: bold; background-color: #ff7f50; color: white; border-radius: 20px; cursor: pointer; box-shadow: 0px 5px 15px rgba(0,0,0,0.2); }
         
-        /* 遊戲主畫面：使用安全的寬高與 Flex 填滿，避免平板底部被遮蓋 */
+        /* 遊戲主畫面：使用安全高度與內距，確保平板絕對不被遮蓋 */
         #gameScreen { 
             display: none; 
             width: 100%; 
             max-width: 580px; 
-            height: 94vh; 
-            max-height: 680px;
+            min-height: 92vh;
             flex-direction: column; 
             align-items: center; 
-            justify-content: space-between; 
+            justify-content: space-evenly; 
             background: #fff; 
-            border-radius: 20px; 
-            border: 4px solid #ffa07a; 
-            padding: 10px; 
-            box-shadow: 0 10px 25px rgba(0,0,0,0.1); 
+            border-radius: 18px; 
+            border: 3px solid #ffa07a; 
+            padding: 8px; 
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1); 
+            margin: auto;
         }
         
         /* 狀態列 (含闖關次數統計) */
-        .status-bar { display: flex; justify-content: space-around; width: 100%; font-size: 18px; font-weight: bold; color: #2c3e50; border-bottom: 2px solid #f3e5ab; padding-bottom: 4px; }
+        .status-bar { display: flex; justify-content: space-around; width: 100%; font-size: 17px; font-weight: bold; color: #2c3e50; border-bottom: 2px solid #f3e5ab; padding-bottom: 4px; }
 
-        .equation-container { display: flex; justify-content: center; align-items: center; font-size: 34px; margin: 2px 0; font-weight: bold; }
-        .concept-text { font-size: 18px; color: #d2691e; margin-bottom: 2px; font-weight: bold; }
+        .equation-container { display: flex; justify-content: center; align-items: center; font-size: 32px; margin: 2px 0; font-weight: bold; }
+        .concept-text { font-size: 17px; color: #d2691e; margin-bottom: 2px; font-weight: bold; }
         
-        .visual-area { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; min-height: 80px; align-items: center; }
-        .group-box { border: 3px solid #ffa07a; border-radius: 10px; padding: 4px; display: grid; gap: 3px; background-color: #fff; align-content: center; width: 50px; height: 75px; }
-        .dot { height: 11px; width: 11px; background-color: #ff6347; border-radius: 50%; }
-        .box { width: 90px; height: 55px; border: 4px dashed #333; display: flex; align-items: center; justify-content: center; background: white; margin: 0 8px; border-radius: 10px; font-size: 32px; }
+        .visual-area { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; min-height: 75px; align-items: center; }
+        .group-box { border: 2px solid #ffa07a; border-radius: 8px; padding: 3px; display: grid; gap: 2px; background-color: #fff; align-content: center; width: 45px; height: 68px; }
+        .dot { height: 10px; width: 10px; background-color: #ff6347; border-radius: 50%; }
+        .box { width: 80px; height: 50px; border: 3px dashed #333; display: flex; align-items: center; justify-content: center; background: white; margin: 0 6px; border-radius: 8px; font-size: 28px; }
         
-        /* 俄羅斯方塊掉落答案區域：給予合適的固定高度，確保平板上完整顯示 */
+        /* 俄羅斯方塊掉落答案區域 */
         #drop-game-container {
             position: relative;
             width: 100%;
-            height: 140px;
+            height: 130px;
             background: #f1f5f9;
-            border: 3px solid #cbd5e1;
-            border-radius: 14px;
+            border: 2px solid #cbd5e1;
+            border-radius: 12px;
             overflow: hidden;
             touch-action: none;
         }
@@ -68,19 +70,19 @@
         /* 掉落的方塊選項 */
         .falling-option {
             position: absolute;
-            width: 65px;
-            height: 65px;
+            width: 60px;
+            height: 60px;
             background: radial-gradient(circle, #98fb98 60%, #3cb371 100%);
             border: 3px solid #2e8b57;
-            border-radius: 15px;
+            border-radius: 12px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 26px;
+            font-size: 24px;
             font-weight: bold;
             color: #1b4d3e;
             cursor: pointer;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            box-shadow: 0 3px 6px rgba(0,0,0,0.2);
             animation: fall linear forwards;
             z-index: 999;
             pointer-events: auto;
@@ -89,8 +91,8 @@
         .falling-option:active { transform: scale(0.9); }
 
         @keyframes fall {
-            0% { top: -70px; }
-            100% { top: 75px; }
+            0% { top: -65px; }
+            100% { top: 70px; }
         }
 
         @keyframes confetti-fall {
@@ -241,7 +243,7 @@
             el.className = 'falling-option';
             el.innerText = val;
 
-            const randomX = Math.random() * (container.clientWidth - 65);
+            const randomX = Math.random() * (container.clientWidth - 60);
             el.style.left = randomX + 'px';
             const duration = 4.5 + Math.random(); 
             el.style.animationDuration = duration + 's';
