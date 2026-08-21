@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0, viewport-fit=cover">
-<title>互動付錢遊戲 (含暫停按鈕版)</title>
+<title>付錢互動遊戲(小一版)</title>
 <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 <style>
   * { 
@@ -25,13 +25,33 @@
     position: relative;
   }
 
+  /* 首頁：淺色背景、深色字體、詳細說明與捲動支援 */
   #startScreen {
     position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-    background: rgba(0, 0, 0, 0.85); color: #fff; z-index: 9999;
-    display: flex; flex-direction: column; justify-content: center; align-items: center;
-    cursor: pointer;
+    background: #e0f2fe; color: #1e293b; z-index: 9999;
+    display: flex; flex-direction: column; justify-content: flex-start; align-items: center;
+    overflow-y: auto; padding: 25px 20px; text-align: left;
   }
-  #startScreen div { font-size: 32px; font-weight: bold; margin-bottom: 20px; padding: 15px 30px; background: #ff9800; border-radius: 10px;}
+  .start-content-box {
+    max-width: 480px; width: 100%; display: flex; flex-direction: column; align-items: center; margin: auto 0;
+  }
+  #startScreen h1 { font-size: 26px; color: #0284c7; margin: 0 0 12px 0; text-align: center; }
+
+  .intro-card {
+    background: #ffffff; border: 2px solid #cbd5e1;
+    border-radius: 12px; padding: 12px 15px; margin-bottom: 15px; width: 100%;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+  }
+  .intro-card h3 { margin: 0 0 6px 0; font-size: 15px; color: #78350f; }
+  .intro-card ul { margin: 0; padding-left: 18px; font-size: 13px; line-height: 1.6; color: #1e293b; }
+  .intro-card li { margin-bottom: 6px; }
+
+  #startScreen .start-btn-wrap {
+    font-size: 24px; font-weight: bold; padding: 15px 35px; background: #2563eb; color: #fff; 
+    border-radius: 15px; cursor: pointer; text-align: center; width: 100%; max-width: 280px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.2); transition: transform 0.1s; margin-top: 5px; margin-bottom: 15px;
+  }
+  #startScreen .start-btn-wrap:active { transform: scale(0.95); background-color: #1d4ed8; }
 
   /* 超額暫停畫面與退錢按鈕 */
   #overflowScreen {
@@ -76,6 +96,7 @@
     border: 3px dashed #aaa; background: #eef; border-radius: 15px;
     position: relative;
     overflow: hidden;
+    touch-action: none;
   }
 
   /* 盤子區 */
@@ -107,16 +128,18 @@
   .coin-10 { background-color: #FFD700; border: 2px solid #DAA520; }
   .coin-1 { background-color: #F0F8FF; border: 2px solid #B0C4DE; }
 
+  /* 放大掉落硬幣尺寸以提升點擊敏感度 */
   .drop-field .coin {
     position: absolute;
-    width: 68px; height: 68px; font-size: 26px;
+    width: 80px; height: 80px; font-size: 30px;
     animation: fall linear forwards;
     z-index: 10;
+    touch-action: manipulation;
   }
 
   @keyframes fall {
-    0% { top: -75px; }
-    100% { top: 310px; }
+    0% { top: -85px; }
+    100% { top: 300px; }
   }
 
   .tray .coin { width: 38px; height: 38px; font-size: 16px; }
@@ -124,8 +147,26 @@
 </head>
 <body>
 
+  <!-- 首頁畫面 -->
   <div id="startScreen">
-    <div>▶ 點擊開始遊戲</div>
+    <div class="start-content-box">
+      <h1>🪙 互動付錢遊戲</h1>
+
+      <!-- 使用說明卡片 -->
+      <div class="intro-card">
+        <h3>📖 操作使用說明</h3>
+        <ul>
+          <li><strong>步驟一 (看目標)：</strong>觀察畫面左上角禮物盒提示的「要付金額」。</li>
+          <li><strong>步驟二 (點硬幣)：</strong>當畫面中掉落 1 元或 10 元硬幣時，用手指點擊收集牠們（硬幣速度已調得非常慢，讓小朋友有充裕時間看清楚與點擊）。</li>
+          <li><strong>步驟三 (自動換錢)：</strong>收集到 10 個一塊錢時，系統會自動幫您換成一個十元硬幣！</li>
+          <li><strong>步驟四 (集滿過關)：</strong>收集到剛好的目標金額即可自動通關！</li>
+          <li><strong>步驟五 (超額處理)：</strong>如果不小心點太多超額，系統會貼心暫停並可一鍵退回重新開始。</li>
+          <li><strong>貼心按鈕：</strong>遊戲過程中隨時可點擊右上角「⏸ 暫停」按鈕休息。</li>
+        </ul>
+      </div>
+
+      <div class="start-btn-wrap" id="startBtn">▶ 點擊開始遊戲</div>
+    </div>
   </div>
 
   <!-- 超額暫停畫面與退錢按鈕 -->
@@ -141,7 +182,6 @@
         <div class="box-icon">🎁</div>
         <div class="target-display">要付 <span id="displayTarget">?</span> 元</div>
       </div>
-      <!-- 新增的暫停按鈕 -->
       <button class="pause-btn" id="pauseBtn" onclick="togglePause()">⏸ 暫停</button>
     </div>
     <div id="warningMsg"></div>
@@ -168,6 +208,7 @@
   const trayCoins = document.getElementById('trayCoins');
   const dropField = document.getElementById('dropField');
   const startScreen = document.getElementById('startScreen');
+  const startBtn = document.getElementById('startBtn');
   const overflowScreen = document.getElementById('overflowScreen');
   const currentAmountSpan = document.getElementById('currentAmount');
   const warningMsg = document.getElementById('warningMsg');
@@ -216,7 +257,7 @@
     window.speechSynthesis.speak(utterance);
   }
 
-  startScreen.addEventListener('click', () => {
+  startBtn.addEventListener('click', () => {
     initAudio();
     let unlockSpeech = new SpeechSynthesisUtterance('');
     window.speechSynthesis.speak(unlockSpeech);
@@ -242,14 +283,14 @@
     activeCoins.forEach(c => c.remove());
     activeCoins = [];
 
+    // 產生硬幣的間隔拉長至 2.5 秒，讓畫面保持輕鬆不擁擠
     dropInterval = setInterval(() => {
       if (!isWinning && !isPaused) spawnFallingCoin();
-    }, 1500);
+    }, 2500);
 
     setTimeout(() => speakText(`要付，${currentTarget} 元`, 0.85), 300);
   }
 
-  // 手動暫停與繼續切換功能
   function togglePause() {
     if (isWinning) return;
     isPaused = !isPaused;
@@ -258,7 +299,6 @@
       pauseBtn.innerText = "▶ 繼續";
       pauseBtn.style.background = "#16a34a";
       warningMsg.innerText = "⏸️ 遊戲已暫停，可以慢慢思考喔！";
-      // 定格所有掉落中的硬幣
       activeCoins.forEach(c => {
         c.style.animationPlayState = 'paused';
       });
@@ -266,7 +306,6 @@
       pauseBtn.innerText = "⏸ 暫停";
       pauseBtn.style.background = "#f59e0b";
       warningMsg.innerText = "";
-      // 恢復掉落動畫
       activeCoins.forEach(c => {
         c.style.animationPlayState = 'running';
       });
@@ -280,14 +319,15 @@
     coinEl.className = coinType === 10 ? 'coin coin-10' : 'coin coin-1';
     coinEl.innerText = coinType;
 
-    const randomX = Math.random() * (dropField.clientWidth - 75);
+    const randomX = Math.random() * (dropField.clientWidth - 85);
     coinEl.style.left = randomX + 'px';
     
-    const duration = 3.5 + Math.random() * 1.5;
+    // 💡 針對特教生極度放慢：將掉落時間拉長至 11.0 ~ 15.0 秒，速度非常平緩
+    const duration = 11.0 + Math.random() * 4.0;
     coinEl.style.animationDuration = duration + 's';
 
-    const handleCoinClick = (e) => {
-      e.preventDefault();
+    const handleCoinSelect = (e) => {
+      if (e.cancelable) e.preventDefault();
       e.stopPropagation();
       if (isWinning || isPaused) return;
 
@@ -318,8 +358,9 @@
       activeCoins = activeCoins.filter(item => item !== coinEl);
     };
 
-    coinEl.addEventListener('click', handleCoinClick);
-    coinEl.addEventListener('touchstart', handleCoinClick);
+    coinEl.addEventListener('pointerdown', handleCoinSelect);
+    coinEl.addEventListener('touchstart', handleCoinSelect, { passive: false });
+    coinEl.addEventListener('click', handleCoinSelect);
 
     coinEl.addEventListener('animationend', () => {
       coinEl.remove();
