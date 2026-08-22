@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>火車加減法遊戲</title>
+    <title>火車加減法遊戲(加減2、3)</title>
     <style>
         body { 
             background-color: #e0f7fa; margin: 0; padding: 2vh; height: 100vh; 
@@ -106,14 +106,14 @@
 
     <!-- 首頁畫面：包含使用說明書與捲動支援 -->
     <div id="home-screen">
-        <h1 style="font-size: 4.5vh; color: #1976d2; margin-top: 5px; margin-bottom: 8px;">🚂 火車車廂算術冒險</h1>
+        <h1 style="font-size: 4.5vh; color: #1976d2; margin-top: 5px; margin-bottom: 8px;">🚂 火車加減法遊戲</h1>
         
         <!-- 使用說明書卡片 -->
         <div class="intro-card">
             <h3>📖 遊戲使用說明書</h3>
             <ul>
-                <li><strong>步驟一：觀察火車變化：</strong>遊戲開始後，先看清楚畫面上原本有幾節火車車廂。</li>
-                <li><strong>步驟二：加法或減法：</strong>接著會有新車廂開進來（加法）或是開走一節車廂（減法）。</li>
+                <li><strong>步驟一：觀察火車車廂：</strong>遊戲開始後，先看清楚畫面上原本有幾節火車車廂。</li>
+                <li><strong>步驟二：加減 2 或 3：</strong>接著會有新車廂開進來（+2 或 +3）或是開走幾節車廂（-2 或 -3）。</li>
                 <li><strong>步驟三：算出總數：</strong>思考現在一共有幾節車廂，或是還剩下幾節車廂。</li>
                 <li><strong>步驟四：點擊數字方塊：</strong>當畫面上方掉落數字方塊時，點擊對應的正確答案方塊即可完成闖關！</li>
             </ul>
@@ -137,7 +137,7 @@
 
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <script>
-        let currentCount = 3, score = 0, startTime;
+        let currentCount = 4, score = 0, startTime;
         let gameInterval = null;
         let activeOptions = [];
         let isAnswered = false;
@@ -189,9 +189,13 @@
             activeOptions = [];
             if (gameInterval) clearInterval(gameInterval);
 
+            // 隨機選擇加法或減法，變動量改為 2 或 3
             let action = Math.random() > 0.5 ? 'add' : 'sub';
+            let delta = Math.random() > 0.5 ? 2 : 3;
+
+            // 確保車廂數量維持在合理的 2 到 10 之間
             if (currentCount >= 8) action = 'sub';
-            if (currentCount <= 1) action = 'add';
+            if (currentCount <= 3) action = 'add';
 
             renderTrain(currentCount);
             feedback.innerText = "仔細看火車喔！";
@@ -199,24 +203,28 @@
             await new Promise(r => setTimeout(r, 1000));
 
             if (action === 'add') {
-                let nextCount = currentCount + 1;
-                eq.innerText = `${currentCount} + 1 = ?`;
+                let nextCount = currentCount + delta;
+                eq.innerText = `${currentCount} + ${delta} = ?`;
                 currentAns = nextCount;
                 
-                let promptText = `原本有 ${currentCount} 節車廂，開來了一節新車廂。`;
+                let promptText = `原本有 ${currentCount} 節車廂，開來了 ${delta} 節新車廂。`;
                 feedback.innerText = promptText;
                 
                 speakText(promptText, async () => {
                     await new Promise(r => setTimeout(r, 500));
-                    let t = document.createElement('div');
-                    t.className = 'train-car entering';
-                    t.innerText = '🚃'; // 全部皆為車廂，沒有火車頭
-                    area.appendChild(t);
                     
-                    await new Promise(r => setTimeout(r, 100));
-                    t.classList.remove('entering');
+                    // 動態加入 delta 節車廂
+                    for(let i = 0; i < delta; i++) {
+                        let t = document.createElement('div');
+                        t.className = 'train-car entering';
+                        t.innerText = '🚃';
+                        area.appendChild(t);
+                        await new Promise(r => setTimeout(r, 100));
+                        t.classList.remove('entering');
+                        await new Promise(r => setTimeout(r, 300));
+                    }
                     
-                    await new Promise(r => setTimeout(r, 1500));
+                    await new Promise(r => setTimeout(r, 1000));
                     currentCount = nextCount;
                     
                     let finalAsk = "現在一共有幾節車廂呢？方塊掉下來囉！";
@@ -226,21 +234,26 @@
                 });
 
             } else {
-                let nextCount = currentCount - 1;
-                eq.innerText = `${currentCount} - 1 = ?`;
+                let nextCount = currentCount - delta;
+                eq.innerText = `${currentCount} - ${delta} = ?`;
                 currentAns = nextCount;
                 
-                let promptText = `原本有 ${currentCount} 節車廂，開走了一節車廂。`;
+                let promptText = `原本有 ${currentCount} 節車廂，開走了 ${delta} 節車廂。`;
                 feedback.innerText = promptText;
                 
                 speakText(promptText, async () => {
                     await new Promise(r => setTimeout(r, 500));
-                    let lastCar = area.lastElementChild;
-                    if (lastCar) {
-                        lastCar.classList.add('exiting');
+                    
+                    // 動態移除最後 delta 節車廂
+                    for(let i = 0; i < delta; i++) {
+                        let lastCar = area.lastElementChild;
+                        if (lastCar) {
+                            lastCar.classList.add('exiting');
+                        }
+                        await new Promise(r => setTimeout(r, 400));
                     }
                     
-                    await new Promise(r => setTimeout(r, 1500));
+                    await new Promise(r => setTimeout(r, 1000));
                     currentCount = nextCount;
                     renderTrain(currentCount);
                     
@@ -258,7 +271,7 @@
             for(let i = 0; i < count; i++) {
                 let t = document.createElement('div');
                 t.className = 'train-car';
-                t.innerText = '🚃'; // 全部使用一致的車廂符號，避免混淆
+                t.innerText = '🚃';
                 area.appendChild(t);
             }
         }
