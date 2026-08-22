@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>火車加減法遊戲</title>
+    <title>火車算術大冒險</title>
     <style>
         body { 
             background-color: #e0f7fa; margin: 0; padding: 2vh; height: 100vh; 
@@ -12,9 +12,38 @@
             user-select: none; -webkit-user-select: none; touch-action: manipulation;
         }
         
-        /* 首頁樣式 */
-        #home-screen { text-align: center; }
-        #start-btn { padding: 4vh 8vh; font-size: 6vh; background: #1976d2; color: white; border: none; border-radius: 3vh; cursor: pointer; box-shadow: 0 1vh #0d47a1; }
+        /* 💡 保持原介面風格，並加入內部捲動與適當內距，確保在所有裝置上都能看到全貌 */
+        #home-screen { 
+            text-align: center; 
+            background: #ffffff;
+            border: 4px solid #b2ebf2;
+            border-radius: 20px;
+            padding: 20px 15px;
+            max-width: 500px;
+            width: 95%;
+            max-height: 94vh;
+            overflow-y: auto;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .intro-card {
+            background: #f8fafc; border: 2px solid #e2e8f0;
+            border-radius: 12px; padding: 10px 15px; margin-bottom: 15px; width: 100%;
+            text-align: left;
+        }
+        .intro-card h3 { margin: 0 0 6px 0; font-size: 16px; color: #1976d2; }
+        .intro-card ul { margin: 0; padding-left: 18px; font-size: 13px; line-height: 1.6; color: #334155; }
+        .intro-card li { margin-bottom: 5px; }
+
+        #start-btn { 
+            padding: 3vh 6vh; font-size: 4vh; background: #1976d2; color: white; 
+            border: none; border-radius: 3vh; cursor: pointer; box-shadow: 0 1vh #0d47a1; 
+            font-weight: bold; width: 100%; max-width: 260px;
+        }
+        #start-btn:active { transform: translateY(3px); box-shadow: 0 0.5vh #0d47a1; }
         
         /* 遊戲介面樣式 */
         #game-ui { display: none; width: 100%; height: 100%; flex-direction: column; align-items: center; justify-content: space-between; max-width: 580px; }
@@ -74,8 +103,21 @@
 </head>
 <body>
 
+    <!-- 首頁畫面：加入使用說明書與捲動支援 -->
     <div id="home-screen">
-        <h1 style="font-size: 8vh; color: #1976d2;">🚂 火車車廂算術冒險</h1>
+        <h1 style="font-size: 5vh; color: #1976d2; margin-top: 5px; margin-bottom: 10px;">🚂 火車車廂算術冒險</h1>
+        
+        <!-- 使用說明書卡片 -->
+        <div class="intro-card">
+            <h3>📖 遊戲使用說明書</h3>
+            <ul>
+                <li><strong>步驟一：觀察火車變化：</strong>遊戲開始後，先看清楚畫面上原本有幾節火車車廂。</li>
+                <li><strong>步驟二：加法或減法：</strong>接著會有新車廂開進來（加法）或是開走一節車廂（減法）。</li>
+                <li><strong>步驟三：算出總數：</strong>思考現在一共有幾節車廂，或是還剩下幾節車廂。</li>
+                <li><strong>步驟四：點擊數字方塊：</strong>當畫面上方掉落數字方塊時，點擊對應的正確答案方塊即可完成闖關！</li>
+            </ul>
+        </div>
+
         <button id="start-btn" onclick="initGame()">開始遊戲</button>
     </div>
 
