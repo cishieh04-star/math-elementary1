@@ -8,45 +8,38 @@
         body { 
             font-family: "Helvetica Neue", Arial, sans-serif; 
             padding: 20px; 
-            /* 放寬最大寬度，讓 4 個選項有足夠空間顯示不擁擠 */
             max-width: 1200px; 
             margin: auto; 
             background-color: #615e5e; 
         }
 
-        /* 統一的按鈕樣式類別 */
         .box {
-            padding: 12px 10px; /* 稍微縮小左右內距避免字被擠壓 */
+            padding: 12px 10px;
             margin: 10px 0;
             border-radius: 8px;
             font-weight: normal;
             text-align: center;
             box-shadow: 0 2px 4px rgba(0,0,0,0.15);
-            /* 讓按鈕內文字完美垂直/水平置中 */
             display: flex;
             align-items: center;
             justify-content: center;
             box-sizing: border-box;
         }
 
-        /* 階層 1：深藍底白字標題 */
         .header-box { 
             background: #0b0573; color: #ffffff; 
             font-size: 1.5em; margin-bottom: 20px;
         }
         
-        /* 階層 2：黃底黑字副標題 */
         .category-box { 
             background: #f1c40f; color: #000000; 
             font-size: 1.1em; width: fit-content; margin: 10px auto; 
         }
         
-        /* 階層 3：橘色按鈕 Grid 佈局 */
         ul { 
             list-style-type: none; 
             padding: 0; 
             display: grid; 
-            /* 關鍵修改：強制設定為 4 個一排 */
             grid-template-columns: repeat(4, 1fr); 
             gap: 15px; 
         }
@@ -55,14 +48,13 @@
             background: #f7ed94; color: #000000; 
             font-size: 1.1em; 
             transition: transform 0.2s;
-            height: 100%; /* 讓每一排的按鈕高度自動對齊一致 */
+            height: 100%; 
             margin: 0;
         }
         .game-link:hover { transform: scale(1.02); }
 
         a { text-decoration: none; color: inherit; width: 100%; }
 
-        /* RWD 微調：如果是在直立的小螢幕手機上觀看，字體自動縮小以防破版 */
         @media (max-width: 768px) {
             .game-link { font-size: 0.9em; padding: 10px 5px; }
             ul { gap: 10px; }
@@ -77,33 +69,32 @@
     <ul id="game-list"></ul>
 
     <script>
-        const version = "6";
+        const version = "7";
         const games = [
-           { name: "1. 認識數字遊戲 (1-5)", file: "learning-numbers(1-5).html" },
+            { name: "1. 認識數字遊戲 (1-5)", file: "learning-numbers(1-5).html" },
             { name: "2. 認識數字遊戲 (6-10)", file: "learning-numbers(6-10).html" },
             { name: "3. 數字的分、合遊戲 (6-10)", file: "divide-integrate.html" },
             { name: "4. 撲克牌的點數遊戲", file: "card-counting.html" },
             { name: "5. 撲克牌的湊10遊戲", file: "card-intergrating(10).html" },
-            { name: ". 認識各種形狀", file: "shape-identifyting.html" },
-            { name: "6. 極簡單加法遊戲 (間隔1)", file: "card-intergrating(10).html" },
-            { name: "7. 極簡單加法遊戲 (+1)", file: "simple-addition-test.html" },
-            { name: "8. 極簡單加法遊戲 (間隔2)", file: "simple-addition(+2).html" },
-            { name: "9. 極簡單減法遊戲 (間隔1)", file: "simple-subtraction.html" },
-            { name: "10. 1到20火車過山洞遊戲 (間隔1)", file: "train20-interface1.html" },
-            { name: "11. 1到20火車過山洞遊戲 (間隔2)", file: "train20-interface2.html" },
-            { name: "12. 火車車廂加減法遊戲 (極簡單)", file: "simple-math(train).html" },
-            { name: "13. 火車車廂加減法遊戲 (加減2或3)", file: "additio-subtraction-math(train).html" },
-            { name: "14. 一般加法遊戲", file: "addition-game.html" },
-            { name: "15. 一般減法遊戲", file: "subtraction.html" },
-            { name: "16. 一般加、減法遊戲", file: "simple-math.html" },
-            { name: "17. 十進位練習遊戲", file: "decimal.html" },
-            { name: "18. 購物付錢遊戲 ($1、$10)", file: "payment.html" },
-            { name: "19. 看時間轉時鐘", file: "setclock.html" },
-            { name: "20. 看時鐘報時間", file: "readclock.html" },
-            { name: "21. 認識60進位制", file: "timecarry.html" },
-            { name: "22. 九九乘法互動遊戲", file: "timestable.html" },
-            { name: "23. 讀懂數學問題互動遊戲", file: "interactivegame.html" },
-            
+            { name: "6. 認識各種形狀", file: "shape-identifyting.html" },
+            { name: "7. 極簡單加法遊戲 (間隔1)", file: "card-intergrating(10).html" },
+            { name: "8. 極簡單加法遊戲 (+1)", file: "simple-addition-test.html" },
+            { name: "9. 極簡單加法遊戲 (間隔2)", file: "simple-addition(+2).html" },
+            { name: "10. 極簡單減法遊戲 (間隔1)", file: "simple-subtraction.html" },
+            { name: "11. 1到20火車過山洞遊戲 (間隔1)", file: "train20-interface1.html" },
+            { name: "12. 1到20火車過山洞遊戲 (間隔2)", file: "train20-interface2.html" },
+            { name: "13. 火車車廂加減法遊戲 (極簡單)", file: "simple-math(train).html" },
+            { name: "14. 火車車廂加減法遊戲 (加減2或3)", file: "additio-subtraction-math(train).html" },
+            { name: "15. 一般加法遊戲", file: "addition-game.html" },
+            { name: "16. 一般減法遊戲", file: "subtraction.html" },
+            { name: "17. 一般加、減法遊戲", file: "simple-math.html" },
+            { name: "18. 十進位練習遊戲", file: "decimal.html" },
+            { name: "19. 購物付錢遊戲 ($1、$10)", file: "payment.html" },
+            { name: "20. 看時間轉時鐘", file: "setclock.html" },
+            { name: "21. 看時鐘報時間", file: "readclock.html" },
+            { name: "22. 認識60進位制", file: "timecarry.html" },
+            { name: "23. 九九乘法互動遊戲", file: "timestable.html" },
+            { name: "24. 讀懂數學問題互動遊戲", file: "interactivegame.html" }
         ];
 
         const listElement = document.getElementById('game-list');
