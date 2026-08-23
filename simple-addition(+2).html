@@ -23,7 +23,38 @@
             touch-action: manipulation;
         }
 
-        #home-screen, #game-ui { 
+        /* 💡 保持原介面風格，並加入內部捲動與適當內距，確保在所有裝置上都能看到全貌 */
+        #home-screen { 
+            text-align: center; 
+            width: 100%; 
+            height: 100%; 
+            display: flex; 
+            flex-direction: column; 
+            justify-content: flex-start; 
+            align-items: center; 
+            overflow-y: auto;
+            padding: 10px;
+        }
+
+        .home-content-box {
+            max-width: 500px; 
+            width: 100%; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            margin: auto 0;
+        }
+
+        .intro-card {
+            background: #f8fafc; border: 2px solid #e2e8f0;
+            border-radius: 12px; padding: 12px 15px; margin-bottom: 15px; width: 100%;
+            text-align: left; box-sizing: border-box;
+        }
+        .intro-card h3 { margin: 0 0 6px 0; font-size: 16px; color: #d97706; }
+        .intro-card ul { margin: 0; padding-left: 18px; font-size: 13px; line-height: 1.5; color: #334155; }
+        .intro-card li { margin-bottom: 5px; }
+
+        #game-ui { 
             text-align: center; 
             width: 100%; 
             height: 100%; 
@@ -131,9 +162,25 @@
 </head>
 <body>
 
+    <!-- 首頁畫面：加入使用說明書與捲動支援 -->
     <div id="home-screen">
-        <h1 style="font-size: 8vh;">數學冒險遊戲</h1>
-        <button id="start-btn" onclick="initGame()">開始玩遊戲</button>
+        <div class="home-content-box">
+            <h1 style="font-size: 5vh; color: #1e293b; margin-top: 10px; margin-bottom: 10px;">10以內的加法遊戲</h1>
+            <p style="color: #64748b; font-size: 15px; margin-bottom: 15px;">快樂學習 10 以內加法，輕鬆闖關！</p>
+            
+            <!-- 使用說明書卡片 -->
+            <div class="intro-card">
+                <h3>📖 遊戲使用說明書</h3>
+                <ul>
+                    <li><strong>步驟一：觀察加法算式：</strong>遊戲開始後，先看清楚畫面上方顯示的加法數字與圓點圖示。</li>
+                    <li><strong>步驟二：計算總和：</strong>動腦計算出兩個數字相加起來的正確總和。</li>
+                    <li><strong>步驟三：點擊答案球：</strong>當畫面上方掉落黃色數字球時，用手指點擊對應的正確答案即可完成闖關！</li>
+                    <li><strong>步驟四：貼心暫停功能：</strong>闖關過程中如果需要休息，可隨時點擊下方的「暫停遊戲」按鈕。</li>
+                </ul>
+            </div>
+
+            <button id="start-btn" onclick="initGame()">開始玩遊戲</button>
+        </div>
     </div>
 
     <div id="game-ui" style="display:none;">
