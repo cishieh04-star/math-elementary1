@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>形狀數數大挑戰</title>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        * { box-sizing: border-box; }
+        body { 
+            font-family: sans-serif; text-align: center; background-color: #f0fdf4; 
+            margin: 0; padding: env(safe-area-inset-top, 5px) env(safe-area-inset-right, 5px) env(safe-area-inset-bottom, 5px) env(safe-area-inset-left, 5px); 
+            min-height: 100vh; min-height: calc(100vh - env(safe-area-inset-bottom));
+            display: flex; flex-direction: column; align-items: center; justify-content: center; 
+            overflow: hidden; touch-action: manipulation; 
+        }
+        
+        /* 首頁與使用說明 */
+        #startScreen { 
+            width: 100%; max-width: 440px; height: 92vh; max-height: 640px;
+            display: flex; flex-direction: column; align-items: center; justify-content: center; 
+            background-color: #ffffff; border-radius: 20px; border: 4px solid #0ea5e9; padding: 15px;
+            box-shadow: 0px 5px 15px rgba(0,0,0,0.15); margin: auto;
+        }
+        .instructions {
+            background-color: #f0f9ff; border: 2px dashed #38bdf8; border-radius: 12px;
+            padding: 10px 12px; margin: 6px 0 12px 0; font-size: 13px; color: #0369a1; text-align: left; line-height: 1.4; width: 100%;
+        }
+        .instructions h3 { margin: 0 0 4px 0; color: #0284c7; font-size: 15px; text-align: center; }
+        .instructions ul { margin: 0; padding-left: 18px; }
+        
+        .start-btn { padding: 12px 30px; font-size: 24px; font-weight: bold; background-color: #0ea5e9; color: white; border-radius: 16px; cursor: pointer; box-shadow: 0px 4px 10px rgba(0,0,0,0.2); border: none; }
+        .start-btn:active { transform: scale(0.95); background-color: #0284c7; }
+
+        /* 遊戲主畫面 */
+        #gameScreen { 
+            display: none; width: 100%; max-width: 440px; height: 94vh; max-height: 640px;
+            flex-direction: column; align-items: center; justify-content: space-between; 
+            background: #ffffff; border-radius: 20px; border: 4px solid #0ea5e9; padding: 8px 12px; 
+            box-shadow: 0px 5px 15px rgba(0,0,0,0.15); margin: auto; position: relative;
+        }
+
+        .header-bar {
+            display: flex; justify-content: space-between; align-items: center; width: 100%;
+            border-bottom: 2px solid #e0f2fe; padding-bottom: 2px; margin-bottom: 2px;
+        }
+
+        .score-display {
+            font-size: 14px; font-weight: bold; color: #0369a1;
+            background: #e0f2fe; padding: 3px 8px; border-radius: 8px;
+        }
+
+        .pause-btn {
+            background-color: #f59e0b; color: white; border: none; border-radius: 8px;
+            padding: 4px 10px; font-size: 13px; font-weight: bold; cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+        }
+        .pause-btn:active { transform: scale(0.95); background-color: #d97706; }
+
+        .question-text { font-size: 16px; font-weight: bold; color: #0284c7; margin: 2px 0; min-height: 24px; }
+
+        /* 圖形展示區：加大圖形並整齊居中 */
+        .shape-display-area {
+            width: 100%; height: 140px; background: #f0f9ff; border: 2px dashed #38bdf8; border-radius: 12px;
+            display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 12px; padding: 8px;
+            overflow-y: auto; margin: 2px auto;
+        }
+        
+        /* 大尺寸幾何形狀樣式 */
+        .shape-box {
+            display: flex; align-items: center; justify-content: center;
+            animation: bounce 1s infinite alternate;
+        }
+        .shape-triangle {
+            width: 0; height: 0;
+            border-left: 24px solid transparent;
+            border-right: 24px solid transparent;
+            border-bottom: 42px solid #ef4444;
+        }
+        .shape-square {
+            width: 42px; height: 42px;
+            background-color: #3b82f6;
+            border-radius: 6px;
+        }
+        .shape-rectangle {
+            width: 56px; height: 34px;
+            background-color: #f59e0b;
+            border-radius: 6px;
+        }
+        .shape-circle {
+            width: 42px; height: 42px;
+            background-color: #10b981;
+            border-radius: 50%;
+        }
+
+        @keyframes bounce {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(-4px); }
+        }
+
+        /* 俄羅斯方塊掉落軌道區 */
+        #drop-game-container {
+            position: relative; width: 100%; height: 160px;
+            background: #f0fdf4; border: 3px solid #4ade80; border-radius: 12px;
+            overflow: hidden; touch-action: manipulation; margin-top: 2px;
+        }
+
+        .falling-option {
+            position: absolute; width: 62px; height: 62px;
+            background: radial-gradient(circle, #bbf7d0 60%, #4ade80 100%);
+            border: 3px solid #16a34a; border-radius: 12px;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            cursor: pointer; box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            animation: tetrisFall linear forwards; z-index: 99;
+        }
+        .falling-option span { font-size: 15px; font-weight: bold; color: #14532d; line-height: 1; margin-bottom: 2px; }
+        
+        .drop-dots { 
+            display: grid; grid-template-columns: repeat(5, 1fr); gap: 2px; justify-items: center;
+        }
+        .mini-dot { width: 5px; height: 5px; background-color: #14532d; border-radius: 50%; }
+
+        .falling-option:active { transform: scale(0.9); }
+
+        @keyframes tetrisFall {
+            0% { top: -20px; }
+            100% { top: 98px; }
+        }
+
+        @keyframes fall {
+            0% { transform: translateY(0vh) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(100vh) rotate(360deg); opacity: 0; }
+        }
+        .confetti { position: absolute; width: 10px; height: 10px; z-index: 999; top: -10px; animation: fall 1.5s linear forwards; }
+    </style>
+</head>
+<body>
+
+    <!-- 首頁與使用說明 -->
+    <div id="startScreen">
+        <h1>✨ 形狀數數大挑戰 ✨</h1>
+        <div class="instructions">
+            <h3>📖 遊戲使用說明</h3>
+            <ul>
+                <li>觀察上方畫面的積木組合，<strong>數一數有幾個指定的形狀？</strong></li>
+                <li>正確的數字方塊會從上方**緩慢像俄羅斯方塊一樣掉落下來**（帶有 5 個一排的小圓圈）。</li>
+                <li>點擊正確的數字方塊即可闖關！答對時會長時間停留展示統計結果喔！</li>
+                <li><strong>💡 貼心功能：</strong>可隨時點擊右上角**暫停**按鈕讓方塊定格思考。</li>
+            </ul>
+        </div>
+        <button class="start-btn" id="startBtn">🎮 開始遊戲</button>
+    </div>
+
+    <!-- 遊戲主畫面 -->
+    <div id="gameScreen">
+        <div class="header-bar">
+            <div class="score-display" id="scoreDisplay">闖關數: 0 關</div>
+            <button class="pause-btn" id="pauseBtn" onclick="togglePause()">暫停</button>
+        </div>
+        
+        <div class="question-text" id="questionText">數一數，有幾個三角形呢？</div>
+
+        <!-- 圖形展示區 -->
+        <div class="shape-display-area" id="shapeDisplayArea"></div>
+        
+        <!-- 俄羅斯方塊掉落軌道區 -->
+        <div id="drop-game-container"></div>
+    </div>
+
+    <script>
+        let score = 0;
+        let isProcessing = false; 
+        let gameInterval = null;
+        let activeOptions = [];
+        let targetShapeName = '三角形';
+        let targetCount = 3;
+        let isPaused = false;
+        let currentOptionsList = [];
+        let currentIndex = 0;
+
+        const shapeTypes = [
+            { name: '三角形', className: 'shape-triangle' },
+            { name: '正方形', className: 'shape-square' },
+            { name: '長方形', className: 'shape-rectangle' },
+            { name: '圓形', className: 'shape-circle' }
+        ];
+
+        let preferredVoice = null;
+
+        function loadVoices() {
+            let voices = window.speechSynthesis.getVoices();
+            if (!voices || voices.length === 0) return;
+
+            preferredVoice = voices.find(v => 
+                (v.lang === 'zh-TW' || v.lang === 'zh-HK' || v.lang === 'zh-CN') && 
+                (v.name.toLowerCase().includes('female') || v.name.toLowerCase().includes('woman') || v.name.includes('女') || v.name.includes('Yating') || v.name.includes('Meijia') || v.name.includes('Xiaoxiao'))
+            );
+            
+            if (!preferredVoice) {
+                preferredVoice = voices.find(v => v.lang === 'zh-TW');
+            }
+        }
+        window.speechSynthesis.onvoiceschanged = loadVoices;
+        loadVoices(); 
+
+        function speak(text) {
+            if (isPaused) return;
+            window.speechSynthesis.cancel(); 
+            const msg = new SpeechSynthesisUtterance(text);
+            msg.lang = 'zh-TW';
+            msg.rate = 0.85; 
+            
+            if (preferredVoice) {
+                msg.voice = preferredVoice;
+            }
+
+            window.speechSynthesis.speak(msg);
+        }
+
+        function triggerConfetti() {
+            for (let i = 0; i < 40; i++) {
+                let c = document.createElement('div');
+                c.className = 'confetti';
+                c.style.left = Math.random() * 100 + 'vw';
+                c.style.backgroundColor = ['#f00', '#0f0', '#00f', '#ff0', '#f0f'][Math.floor(Math.random()*5)];
+                c.style.animationDelay = (Math.random() * 0.5) + 's';
+                document.body.appendChild(c);
+                setTimeout(() => c.remove(), 2500); 
+            }
+        }
+
+        document.getElementById('startBtn').onclick = () => {
+            window.speechSynthesis.speak(new SpeechSynthesisUtterance(''));
+            document.getElementById('startScreen').style.display = 'none';
+            document.getElementById('gameScreen').style.display = 'flex';
+            score = 0;
+            document.getElementById('scoreDisplay').innerText = `闖關數: ${score} 關`;
+            generateQuestion();
+        };
+
+        function togglePause() {
+            isPaused = !isPaused;
+            const pauseBtn = document.getElementById('pauseBtn');
+            const options = document.querySelectorAll('.falling-option');
+
+            if (isPaused) {
+                pauseBtn.innerText = "繼續";
+                pauseBtn.style.backgroundColor = "#16a34a";
+                if (gameInterval) clearInterval(gameInterval);
+                window.speechSynthesis.cancel();
+                options.forEach(el => el.style.animationPlayState = 'paused');
+            } else {
+                pauseBtn.innerText = "暫停";
+                pauseBtn.style.backgroundColor = "#f59e0b";
+                options.forEach(el => el.style.animationPlayState = 'running');
+                if (!isProcessing) {
+                    startFallingLoop();
+                }
+            }
+        }
+
+        function generateQuestion() {
+            isProcessing = false;
+            isPaused = false;
+            document.getElementById('pauseBtn').innerText = "暫停";
+            document.getElementById('pauseBtn').style.backgroundColor = "#f59e0b";
+            
+            activeOptions.forEach(el => el.remove());
+            activeOptions = [];
+            if (gameInterval) clearInterval(gameInterval);
+
+            // 隨機選定題目要問的形狀（涵蓋三角形、正方形、長方形、圓形）
+            let targetObj = shapeTypes[Math.floor(Math.random() * shapeTypes.length)];
+            targetShapeName = targetObj.name;
+            targetCount = Math.floor(Math.random() * 4) + 2; // 2 到 5 個
+
+            let shapesArray = [];
+            for(let i = 0; i < targetCount; i++) {
+                shapesArray.push(targetObj.className);
+            }
+            let otherShapes = shapeTypes.filter(s => s.name !== targetShapeName);
+            let otherCount = Math.floor(Math.random() * 3) + 1;
+            for(let i = 0; i < otherCount; i++) {
+                let randomOther = otherShapes[Math.floor(Math.random() * otherShapes.length)];
+                shapesArray.push(randomOther.className);
+            }
+            
+            shapesArray.sort(() => Math.random() - 0.5);
+
+            let displayHTML = '';
+            shapesArray.forEach(cls => {
+                displayHTML += `<div class="shape-box"><div class="${cls}"></div></div>`;
+            });
+
+            document.getElementById('shapeDisplayArea').innerHTML = displayHTML;
+            document.getElementById('questionText').innerText = `數一數，有幾個 ${targetShapeName} 呢？`;
+            speak(`數一數，畫面上有幾個${targetShapeName}呢？數字方塊掉下來囉！`);
+
+            let opts = [targetCount];
+            while(opts.length < 5) {
+                let r = Math.floor(Math.random() * 5) + 1;
+                if(!opts.includes(r)) opts.push(r);
+            }
+            opts.sort(() => Math.random() - 0.5);
+            currentOptionsList = opts;
+
+            currentIndex = 0;
+            startFallingLoop();
+        }
+
+        function startFallingLoop() {
+            if (gameInterval) clearInterval(gameInterval);
+            gameInterval = setInterval(() => {
+                if (isProcessing || isPaused) return;
+                if (currentIndex >= currentOptionsList.length) currentIndex = 0;
+                spawnFallingOption(currentOptionsList[currentIndex]);
+                currentIndex++;
+            }, 2500); 
+        }
+
+        function spawnFallingOption(val) {
+            if (isProcessing || isPaused) return;
+            const container = document.getElementById('drop-game-container');
+            const el = document.createElement('div');
+            el.className = 'falling-option';
+            
+            let miniDotsHTML = '';
+            for(let i = 0; i < val; i++) {
+                miniDotsHTML += `<div class="mini-dot"></div>`;
+            }
+            
+            el.innerHTML = `<span>${val}</span><div class="drop-dots">${miniDotsHTML}</div>`;
+
+            const randomX = Math.random() * (container.clientWidth - 62);
+            el.style.left = randomX + 'px';
+            el.style.animationDuration = "8s"; 
+
+            let isHandled = false;
+            const handleSelect = (e) => {
+                if (e) e.preventDefault();
+                if (isProcessing || isHandled || isPaused) return;
+
+                if (val === targetCount) {
+                    isProcessing = true; 
+                    isHandled = true;
+                    if (gameInterval) clearInterval(gameInterval);
+                    activeOptions.forEach(opt => opt.remove());
+                    
+                    score++;
+                    document.getElementById('scoreDisplay').innerText = `闖關數: ${score} 關`;
+
+                    document.getElementById('questionText').innerHTML = `<span style="color: #16a34a; font-size: 18px;">🎉 ${targetShapeName}總共有 ${val} 個！</span>`;
+
+                    triggerConfetti();
+                    speak(`太棒了！${targetShapeName}總共有 ${val} 個。你答對了！`);
+                    
+                    setTimeout(() => {
+                        generateQuestion();
+                    }, 6000);
+
+                } else {
+                    isHandled = true;
+                    speak("再數數看喔！");
+                    el.style.opacity = "0";
+                    setTimeout(() => el.remove(), 300);
+                }
+            };
+
+            el.addEventListener('click', handleSelect);
+            el.addEventListener('touchstart', handleSelect, { passive: false });
+            el.addEventListener('animationend', () => {
+                el.remove();
+                activeOptions = activeOptions.filter(item => item !== el);
+            });
+
+            container.appendChild(el);
+            activeOptions.push(el);
+        }
+    </script>
+</body>
+</html>
