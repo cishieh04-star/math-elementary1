@@ -75,7 +75,7 @@
     <ul id="game-list"></ul>
 
     <script>
-        const version = "8";
+        const version = "9";
         const games = [
             { name: "1. 認識數字遊戲(1-5)", file: "learning-numbers(1-5).html" },
             { name: "2. 認識數字遊戲(6-10)", file: "learning-numbers(6-10).html" },
@@ -83,26 +83,25 @@
             { name: "4. 撲克牌的點數遊戲", file: "card-counting.html" },
             { name: "5. 撲克牌的湊10遊戲", file: "card-intergrating(10).html" },
             { name: "6. 認識各種形狀", file: "shape-identifyting.html" },
-            { name: "7. 極簡單加法遊戲 (間隔1)", file: "card-intergrating(10).html" },
-            { name: "8. 極簡單加法遊戲 (+1)", file: "simple-addition-test.html" },
-            { name: "9. 極簡單加法遊戲 (間隔2)", file: "simple-addition(+2).html" },
-            { name: "10. 極簡單減法遊戲 (間隔1)", file: "simple-subtraction.html" },
-            { name: "11. 1到10火車過山洞遊戲 (間隔1)", file: "train10-interface1.html" },
-            { name: "12. 1到20火車過山洞遊戲 (間隔1)", file: "train20-interface1.html" },
-            { name: "13. 1到30火車過山洞遊戲 (間隔1)", file: "train30-interface1.html" },
-            { name: "14. 1到20火車過山洞遊戲 (間隔2)", file: "train20-interface2.html" },
-            { name: "15. 火車車廂加減法遊戲 (極簡單)", file: "simple-math(train).html" },
-            { name: "16. 火車車廂加減法遊戲 (加減2或3)", file: "additio-subtraction-math(train).html" },
-            { name: "17. 一般加法遊戲", file: "addition-game.html" },
-            { name: "18. 一般減法遊戲", file: "subtraction.html" },
-            { name: "19. 一般加、減法遊戲", file: "simple-math.html" },
-            { name: "20. 十進位練習遊戲", file: "decimal.html" },
-            { name: "21. 購物付錢遊戲 ($1、$10)", file: "payment.html" },
-            { name: "22. 看時間轉時鐘", file: "setclock.html" },
-            { name: "23. 看時鐘報時間", file: "readclock.html" },
-            { name: "24. 認識60進位制", file: "timecarry.html" },
-            { name: "25. 九九乘法互動遊戲", file: "timestable.html" },
-            { name: "26. 讀懂數學問題互動遊戲", file: "interactivegame.html" }
+            { name: "7. 極簡單加法遊戲 (+1)", file: "simple-addition-test.html" },
+            { name: "8. 極簡單加法遊戲 (間隔2)", file: "simple-addition(+2).html" },
+            { name: "9. 極簡單減法遊戲 (間隔1)", file: "simple-subtraction.html" },
+            { name: "10. 1到10火車過山洞遊戲 (間隔1)", file: "train10-interface1.html" },
+            { name: "11. 1到20火車過山洞遊戲 (間隔1)", file: "train20-interface1.html" },
+            { name: "12. 1到30火車過山洞遊戲 (間隔1)", file: "train30-interface1.html" },
+            { name: "13. 1到20火車過山洞遊戲 (間隔2)", file: "train20-interface2.html" },
+            { name: "14. 火車車廂加減法遊戲 (極簡單)", file: "simple-math(train).html" },
+            { name: "15. 火車車廂加減法遊戲 (加減2或3)", file: "additio-subtraction-math(train).html" },
+            { name: "16. 一般加法遊戲", file: "addition-game.html" },
+            { name: "17. 一般減法遊戲", file: "subtraction.html" },
+            { name: "18. 一般加、減法遊戲", file: "simple-math.html" },
+            { name: "19. 十進位練習遊戲", file: "decimal.html" },
+            { name: "20. 購物付錢遊戲 ($1、$10)", file: "payment.html" },
+            { name: "21. 看時間轉時鐘", file: "setclock.html" },
+            { name: "22. 看時鐘報時間", file: "readclock.html" },
+            { name: "23. 認識60進位制", file: "timecarry.html" },
+            { name: "24. 九九乘法互動遊戲", file: "timestable.html" },
+            { name: "25. 讀懂數學問題互動遊戲", file: "interactivegame.html" }
         ];
 
         const listElement = document.getElementById('game-list');
