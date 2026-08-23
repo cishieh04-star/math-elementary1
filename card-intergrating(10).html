@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>撲克牌湊 10 大挑戰</title>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        * { box-sizing: border-box; }
+        body { 
+            font-family: sans-serif; text-align: center; background-color: #fdf5e6; 
+            margin: 0; padding: env(safe-area-inset-top, 5px) env(safe-area-inset-right, 5px) env(safe-area-inset-bottom, 5px) env(safe-area-inset-left, 5px); 
+            min-height: 100vh; min-height: calc(100vh - env(safe-area-inset-bottom));
+            display: flex; flex-direction: column; align-items: center; justify-content: center; 
+            overflow: hidden; touch-action: manipulation; 
+        }
+        
+        /* 首頁與使用說明 */
+        #startScreen { 
+            width: 100%; max-width: 440px; height: 92vh; max-height: 640px;
+            display: flex; flex-direction: column; align-items: center; justify-content: center; 
+            background-color: #fff; border-radius: 20px; border: 4px solid #ff7f50; padding: 15px;
+            box-shadow: 0px 5px 15px rgba(0,0,0,0.15); margin: auto;
+        }
+        .instructions {
+            background-color: #fff8dc; border: 2px dashed #ffa07a; border-radius: 12px;
+            padding: 10px 12px; margin: 6px 0 12px 0; font-size: 13px; color: #8b4513; text-align: left; line-height: 1.4; width: 100%;
+        }
+        .instructions h3 { margin: 0 0 4px 0; color: #d2691e; font-size: 15px; text-align: center; }
+        .instructions ul { margin: 0; padding-left: 18px; }
+        
+        .start-btn { padding: 12px 30px; font-size: 24px; font-weight: bold; background-color: #ff7f50; color: white; border-radius: 16px; cursor: pointer; box-shadow: 0px 4px 10px rgba(0,0,0,0.2); border: none; }
+        .start-btn:active { transform: scale(0.95); background-color: #e66738; }
+
+        /* 遊戲主畫面：緊湊集中，確保所有裝置百分之百看到全貌 */
+        #gameScreen { 
+            display: none; width: 100%; max-width: 440px; height: 94vh; max-height: 640px;
+            flex-direction: column; align-items: center; justify-content: space-between; 
+            background: #fff; border-radius: 20px; border: 4px solid #ff7f50; padding: 8px 12px; 
+            box-shadow: 0px 5px 15px rgba(0,0,0,0.15); margin: auto; position: relative;
+        }
+
+        .header-bar {
+            display: flex; justify-content: space-between; align-items: center; width: 100%;
+            border-bottom: 2px solid #fdf5e6; padding-bottom: 2px; margin-bottom: 2px;
+        }
+
+        .score-display {
+            font-size: 14px; font-weight: bold; color: #b45309;
+            background: #fef3c7; padding: 3px 8px; border-radius: 8px;
+        }
+
+        .pause-btn {
+            background-color: #f59e0b; color: white; border: none; border-radius: 8px;
+            padding: 4px 10px; font-size: 13px; font-weight: bold; cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+        }
+        .pause-btn:active { transform: scale(0.95); background-color: #d97706; }
+
+        .question-text { font-size: 16px; font-weight: bold; color: #d2691e; margin: 2px 0; min-height: 24px; }
+
+        /* 精緻撲克牌顯示區 */
+        .card-display {
+            width: 90px; height: 125px; background: #fff; border: 3px solid #333; border-radius: 10px;
+            display: flex; flex-direction: column; justify-content: space-between; padding: 5px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1); margin: 2px auto; position: relative;
+        }
+        .card-top { font-size: 15px; font-weight: bold; text-align: left; line-height: 1; }
+        
+        .card-symbols { 
+            display: flex; justify-content: center; align-items: center; gap: 3px; flex-wrap: wrap;
+            font-size: 16px; max-height: 75px; overflow: hidden; margin: auto; width: 100%;
+        }
+        .red-suit { color: #dc2626; }
+        .black-suit { color: #111827; }
+
+        /* 俄羅斯方塊掉落軌道區 */
+        #drop-game-container {
+            position: relative; width: 100%; height: 160px;
+            background: #fdf5e6; border: 3px solid #ffa07a; border-radius: 12px;
+            overflow: hidden; touch-action: manipulation; margin-top: 2px;
+        }
+
+        .falling-option {
+            position: absolute; width: 62px; height: 62px;
+            background: radial-gradient(circle, #98fb98 60%, #3cb371 100%);
+            border: 3px solid #2e8b57; border-radius: 12px;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            cursor: pointer; box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            animation: tetrisFall linear forwards; z-index: 99;
+        }
+        .falling-option span { font-size: 15px; font-weight: bold; color: #004d1a; line-height: 1; margin-bottom: 2px; }
+        
+        .drop-dots { 
+            display: grid; grid-template-columns: repeat(5, 1fr); gap: 2px; justify-items: center;
+        }
+        .mini-dot { width: 5px; height: 5px; background-color: #004d1a; border-radius: 50%; }
+
+        .falling-option:active { transform: scale(0.9); }
+
+        @keyframes tetrisFall {
+            0% { top: -20px; }
+            100% { top: 98px; }
+        }
+
+        @keyframes fall {
+            0% { transform: translateY(0vh) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(100vh) rotate(360deg); opacity: 0; }
+        }
+        .confetti { position: absolute; width: 10px; height: 10px; z-index: 999; top: -10px; animation: fall 1.5s linear forwards; }
+    </style>
+</head>
+<body>
+
+    <!-- 首頁與使用說明 -->
+    <div id="startScreen">
+        <h1>✨ 撲克牌湊 10 大挑戰 ✨</h1>
+        <div class="instructions">
+            <h3>📖 遊戲使用說明</h3>
+            <ul>
+                <li>觀察上方翻開的<strong>撲克牌</strong>點數是多少？</li>
+                <li>動腦算一算：<strong>還要加上多少，才會變成 10 呢？</strong></li>
+                <li>正確的數字方塊會從上方**緩慢像俄羅斯方塊一樣掉落下來**。</li>
+                <li>點擊正確的數字方塊即可闖關！答對時會完整展示加法算式。</li>
+                <li><strong>💡 貼心功能：</strong>可隨時點擊右上角**暫停**按鈕讓方塊定格思考。</li>
+            </ul>
+        </div>
+        <button class="start-btn" id="startBtn">🎮 開始遊戲</button>
+    </div>
+
+    <!-- 遊戲主畫面 -->
+    <div id="gameScreen">
+        <div class="header-bar">
+            <div class="score-display" id="scoreDisplay">闖關數: 0 關</div>
+            <button class="pause-btn" id="pauseBtn" onclick="togglePause()">暫停</button>
+        </div>
+        
+        <div class="question-text" id="questionText">這張是 3 點，還要加多少等於 10 呢？</div>
+
+        <!-- 撲克牌視覺呈現 -->
+        <div class="card-display" id="cardDisplay">
+            <div class="card-top" id="cardTopNum">3</div>
+            <div class="card-symbols" id="cardSymbols"></div>
+            <div class="card-top" id="cardBtmNum" style="text-align: right; transform: rotate(180deg);">3</div>
+        </div>
+        
+        <!-- 俄羅斯方塊掉落軌道區 -->
+        <div id="drop-game-container"></div>
+    </div>
+
+    <script>
+        let score = 0;
+        let isProcessing = false; 
+        let gameInterval = null;
+        let activeOptions = [];
+        let currentCardValue = 3;
+        let targetAnswer = 7;
+        let isPaused = false;
+        let currentOptionsList = [];
+        let currentIndex = 0;
+
+        const suits = [
+            { name: '紅心', symbol: '♥', class: 'red-suit' },
+            { name: '黑桃', symbol: '♠', class: 'black-suit' },
+            { name: '方塊', symbol: '♦', class: 'red-suit' },
+            { name: '梅花', symbol: '♣', class: 'black-suit' }
+        ];
+
+        let preferredVoice = null;
+
+        function loadVoices() {
+            let voices = window.speechSynthesis.getVoices();
+            if (!voices || voices.length === 0) return;
+
+            preferredVoice = voices.find(v => 
+                (v.lang === 'zh-TW' || v.lang === 'zh-HK' || v.lang === 'zh-CN') && 
+                (v.name.toLowerCase().includes('female') || v.name.toLowerCase().includes('woman') || v.name.includes('女') || v.name.includes('Yating') || v.name.includes('Meijia') || v.name.includes('Xiaoxiao'))
+            );
+            
+            if (!preferredVoice) {
+                preferredVoice = voices.find(v => v.lang === 'zh-TW');
+            }
+        }
+        window.speechSynthesis.onvoiceschanged = loadVoices;
+        loadVoices(); 
+
+        function speak(text) {
+            if (isPaused) return;
+            window.speechSynthesis.cancel(); 
+            const msg = new SpeechSynthesisUtterance(text);
+            msg.lang = 'zh-TW';
+            msg.rate = 0.85; 
+            
+            if (preferredVoice) {
+                msg.voice = preferredVoice;
+            }
+
+            window.speechSynthesis.speak(msg);
+        }
+
+        function triggerConfetti() {
+            for (let i = 0; i < 40; i++) {
+                let c = document.createElement('div');
+                c.className = 'confetti';
+                c.style.left = Math.random() * 100 + 'vw';
+                c.style.backgroundColor = ['#f00', '#0f0', '#00f', '#ff0', '#f0f'][Math.floor(Math.random()*5)];
+                c.style.animationDelay = (Math.random() * 0.5) + 's';
+                document.body.appendChild(c);
+                setTimeout(() => c.remove(), 2500); 
+            }
+        }
+
+        document.getElementById('startBtn').onclick = () => {
+            window.speechSynthesis.speak(new SpeechSynthesisUtterance(''));
+            document.getElementById('startScreen').style.display = 'none';
+            document.getElementById('gameScreen').style.display = 'flex';
+            score = 0;
+            document.getElementById('scoreDisplay').innerText = `闖關數: ${score} 關`;
+            generateQuestion();
+        };
+
+        function togglePause() {
+            isPaused = !isPaused;
+            const pauseBtn = document.getElementById('pauseBtn');
+            const options = document.querySelectorAll('.falling-option');
+
+            if (isPaused) {
+                pauseBtn.innerText = "繼續";
+                pauseBtn.style.backgroundColor = "#16a34a";
+                if (gameInterval) clearInterval(gameInterval);
+                window.speechSynthesis.cancel();
+                options.forEach(el => el.style.animationPlayState = 'paused');
+            } else {
+                pauseBtn.innerText = "暫停";
+                pauseBtn.style.backgroundColor = "#f59e0b";
+                options.forEach(el => el.style.animationPlayState = 'running');
+                if (!isProcessing) {
+                    startFallingLoop();
+                }
+            }
+        }
+
+        function generateQuestion() {
+            isProcessing = false;
+            isPaused = false;
+            document.getElementById('pauseBtn').innerText = "暫停";
+            document.getElementById('pauseBtn').style.backgroundColor = "#f59e0b";
+            
+            activeOptions.forEach(el => el.remove());
+            activeOptions = [];
+            if (gameInterval) clearInterval(gameInterval);
+
+            currentCardValue = Math.floor(Math.random() * 9) + 1; 
+            targetAnswer = 10 - currentCardValue; 
+            let randomSuit = suits[Math.floor(Math.random() * suits.length)];
+
+            document.getElementById('cardTopNum').innerText = currentCardValue;
+            document.getElementById('cardTopNum').className = `card-top ${randomSuit.class}`;
+            
+            document.getElementById('cardBtmNum').innerText = currentCardValue;
+            document.getElementById('cardBtmNum').className = `card-top ${randomSuit.class}`;
+
+            // 確保花色數量絕對對應 currentCardValue
+            let symbolsHTML = '';
+            for(let i = 0; i < currentCardValue; i++) {
+                symbolsHTML += `<span class="${randomSuit.class}">${randomSuit.symbol}</span>`;
+            }
+            document.getElementById('cardSymbols').innerHTML = symbolsHTML;
+
+            document.getElementById('questionText').innerText = `這張是 ${currentCardValue} 點，加多少等於 10 呢？`;
+            speak(`這張是${randomSuit.name}${currentCardValue}點，請問要加多少，才會等於10呢？數字方塊掉下來囉！`);
+
+            let opts = [targetAnswer];
+            while(opts.length < 5) {
+                let r = Math.floor(Math.random() * 9) + 1;
+                if(!opts.includes(r)) opts.push(r);
+            }
+            opts.sort(() => Math.random() - 0.5);
+            currentOptionsList = opts;
+
+            currentIndex = 0;
+            startFallingLoop();
+        }
+
+        function startFallingLoop() {
+            if (gameInterval) clearInterval(gameInterval);
+            gameInterval = setInterval(() => {
+                if (isProcessing || isPaused) return;
+                if (currentIndex >= currentOptionsList.length) currentIndex = 0;
+                spawnFallingOption(currentOptionsList[currentIndex]);
+                currentIndex++;
+            }, 2500); 
+        }
+
+        function spawnFallingOption(val) {
+            if (isProcessing || isPaused) return;
+            const container = document.getElementById('drop-game-container');
+            const el = document.createElement('div');
+            el.className = 'falling-option';
+            
+            let miniDotsHTML = '';
+            for(let i = 0; i < val; i++) {
+                miniDotsHTML += `<div class="mini-dot"></div>`;
+            }
+            
+            el.innerHTML = `<span>${val}</span><div class="drop-dots">${miniDotsHTML}</div>`;
+
+            const randomX = Math.random() * (container.clientWidth - 62);
+            el.style.left = randomX + 'px';
+            el.style.animationDuration = "8s"; 
+
+            let isHandled = false;
+            const handleSelect = (e) => {
+                if (e) e.preventDefault();
+                if (isProcessing || isHandled || isPaused) return;
+
+                if (val === targetAnswer) {
+                    isProcessing = true; 
+                    isHandled = true;
+                    if (gameInterval) clearInterval(gameInterval);
+                    activeOptions.forEach(opt => opt.remove());
+                    
+                    score++;
+                    document.getElementById('scoreDisplay').innerText = `闖關數: ${score} 關`;
+
+                    // 顯示完整橫式加法算式
+                    document.getElementById('questionText').innerHTML = `<span style="color: #16a34a; font-size: 18px;">🎉 ${currentCardValue} ＋ ${val} ＝ 10</span>`;
+
+                    triggerConfetti();
+                    speak(`太棒了！${currentCardValue} 加 ${val} 等於 10。你答對了！`);
+                    
+                    // 停留時間減 1 秒（從 7 秒調整為 6 秒）
+                    setTimeout(() => {
+                        generateQuestion();
+                    }, 6000);
+
+                } else {
+                    isHandled = true;
+                    speak("再想一想喔！");
+                    el.style.opacity = "0";
+                    setTimeout(() => el.remove(), 300);
+                }
+            };
+
+            el.addEventListener('click', handleSelect);
+            el.addEventListener('touchstart', handleSelect, { passive: false });
+            el.addEventListener('animationend', () => {
+                el.remove();
+                activeOptions = activeOptions.filter(item => item !== el);
+            });
+
+            container.appendChild(el);
+            activeOptions.push(el);
+        }
+    </script>
+</body>
+</html>
