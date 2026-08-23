@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>簡單加法冒險遊戲</title>
+    <title>10以內的加法遊戲(間隔1)</title>
     <!-- 引入灑花特效庫 -->
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <style>
@@ -40,7 +40,20 @@
             justify-content: space-between;
         }
 
-        #home-screen, #game-ui { 
+        /* 💡 保持原介面風格，並加入內部捲動與適當內距，確保在所有裝置上都能完整看到全貌 */
+        #home-screen { 
+            text-align: center; 
+            width: 100%; 
+            display: flex; 
+            flex-direction: column; 
+            justify-content: flex-start; 
+            align-items: center; 
+            max-height: 90vh;
+            overflow-y: auto;
+            padding-right: 5px;
+        }
+
+        #game-ui { 
             text-align: center; 
             width: 100%; 
             display: flex; 
@@ -48,6 +61,15 @@
             justify-content: center; 
             align-items: center; 
         }
+
+        .intro-card {
+            background: #f8fafc; border: 2px solid #e2e8f0;
+            border-radius: 12px; padding: 10px 15px; margin-bottom: 12px; width: 100%;
+            text-align: left; box-sizing: border-box;
+        }
+        .intro-card h3 { margin: 0 0 6px 0; font-size: 16px; color: #d97706; }
+        .intro-card ul { margin: 0; padding-left: 18px; font-size: 13px; line-height: 1.5; color: #334155; }
+        .intro-card li { margin-bottom: 4px; }
         
         #status-bar { 
             display: flex; 
@@ -156,10 +178,22 @@
 <body>
 
 <div class="main-wrapper">
-    <!-- 首頁畫面 -->
-    <div id="home-screen" style="display: flex;">
-        <h1 style="font-size: 38px; color: #1e293b; margin-bottom: 10px;">🌟 數學冒險遊戲</h1>
-        <p style="color: #64748b; font-size: 16px; margin-bottom: 25px;">點擊掉落的正確答案，一起來闖關！</p>
+    <!-- 首頁畫面：包含使用說明書與捲動支援 -->
+    <div id="home-screen">
+        <h1 style="font-size: 34px; color: #1e293b; margin-bottom: 5px;">🌟 簡單加法冒險遊戲</h1>
+        <p style="color: #64748b; font-size: 14px; margin-bottom: 12px;">點擊掉落的正確答案，一起來快樂闖關！</p>
+        
+        <!-- 使用說明書卡片 -->
+        <div class="intro-card">
+            <h3>📖 遊戲使用說明書</h3>
+            <ul>
+                <li><strong>步驟一：觀察加法算式：</strong>遊戲開始後，先看清楚畫面上方顯示的數字與圖示（例如圓點數量相加）。</li>
+                <li><strong>步驟二：心算總和：</strong>動腦計算出兩個數字相加起來的正確總和。</li>
+                <li><strong>步驟三：點擊掉落答案球：</strong>當畫面上方掉落黃色數字球時，用手指點擊對應的正確答案即可完成闖關！</li>
+                <li><strong>步驟四：貼心暫停功能：</strong>闖關過程中如果需要休息，可隨時點擊下方的「暫停遊戲」按鈕。</li>
+            </ul>
+        </div>
+
         <button id="start-btn" type="button">開始玩遊戲</button>
     </div>
 
@@ -335,7 +369,7 @@
                     pauseBtn.style.backgroundColor = "#16a34a";
                 }
                 const feedbackEl = document.getElementById('feedback');
-                if (feedbackEl) feedbackEl.innerText = "⏸️ 遊戲已暫停，去上洗手間吧！";
+                if (feedbackEl) feedbackEl.innerText = "⏸️ 遊戲已暫停，慢慢思考喔！";
                 activeOptions.forEach(el => {
                     el.style.animationPlayState = 'paused';
                 });
