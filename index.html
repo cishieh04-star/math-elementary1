@@ -77,38 +77,39 @@
     <script>
         const version = "9";
         const games = [
-            { name: "1. 認識數字遊戲(1-5)", file: "learning-numbers(1-5).html" },
-            { name: "2. 認識數字遊戲(6-10)", file: "learning-numbers(6-10).html" },
-            { name: "3. 數字的分與合遊戲 (6-10)", file: "divide-integrate.html" },
-            { name: "4. 撲克牌的點數遊戲", file: "card-counting.html" },
-            { name: "5. 撲克牌的湊10遊戲", file: "card-intergrating(10).html" },
-            { name: "6. 認識各種形狀", file: "shape-identifyting.html" },
-            { name: "7. 10以內的加法(固定加1)", file: "simple-addition-test.html" },
-            { name: "8. 10以內的加法(固定加2)", file: "simple-addition(+2).html" },
-            { name: "8. 10以內的加法(隨意加)", file: "simple-addition(random).html" },
-            { name: "9. 極簡單減法遊戲 (間隔1)", file: "simple-subtraction.html" },
-            { name: "10. 1到10火車過山洞遊戲 (間隔1)", file: "train10-interface1.html" },
-            { name: "11. 1到20火車過山洞遊戲 (間隔1)", file: "train20-interface1.html" },
-            { name: "12. 1到30火車過山洞遊戲 (間隔1)", file: "train30-interface1.html" },
-            { name: "13. 1到20火車過山洞遊戲 (間隔2)", file: "train20-interface2.html" },
-            { name: "14. 火車車廂加減法遊戲 (極簡單)", file: "simple-math(train).html" },
-            { name: "15. 火車車廂加減法遊戲 (加減2或3)", file: "additio-subtraction-math(train).html" },
-            { name: "16. 一般加法遊戲", file: "addition-game.html" },
-            { name: "17. 一般減法遊戲", file: "subtraction.html" },
-            { name: "18. 一般加、減法遊戲", file: "simple-math.html" },
-            { name: "19. 十進位練習遊戲", file: "decimal.html" },
-            { name: "20. 購物付錢遊戲 ($1、$10)", file: "payment.html" },
-            { name: "21. 看時間轉時鐘", file: "setclock.html" },
-            { name: "22. 看時鐘報時間", file: "readclock.html" },
-            { name: "23. 認識60進位制", file: "timecarry.html" },
-            { name: "24. 九九乘法互動遊戲", file: "timestable.html" },
-            { name: "25. 讀懂數學問題互動遊戲", file: "interactivegame.html" }
+            { file: "learning-numbers(1-5).html", name: "認識數字遊戲(1-5)" },
+            { file: "learning-numbers(6-10).html", name: "認識數字遊戲(6-10)" },
+            { file: "divide-integrate.html", name: "數字的分與合遊戲 (6-10)" },
+            { file: "card-counting.html", name: "撲克牌的點數遊戲" },
+            { file: "card-intergrating(10).html", name: "撲克牌的湊10遊戲" },
+            { file: "shape-identifyting.html", name: "認識各種形狀" },
+            { file: "simple-addition-test.html", name: "10以內的加法(固定加1)" },
+            { file: "simple-addition(+2).html", name: "10以內的加法(固定加2)" },
+            { file: "simple-addition(random).html", name: "10以內的加法(隨意加)" },
+            { file: "simple-subtraction.html", name: "極簡單減法遊戲 (間隔1)" },
+            { file: "train10-interface1.html", name: "1到10火車過山洞遊戲 (間隔1)" },
+            { file: "train20-interface1.html", name: "1到20火車過山洞遊戲 (間隔1)" },
+            { file: "train30-interface1.html", name: "1到30火車過山洞遊戲 (間隔1)" },
+            { file: "train20-interface2.html", name: "1到20火車過山洞遊戲 (間隔2)" },
+            { file: "simple-math(train).html", name: "火車車廂加減法遊戲 (極簡單)" },
+            { file: "additio-subtraction-math(train).html", name: "火車車廂加減法遊戲 (加減2或3)" },
+            { file: "addition-game.html", name: "一般加法遊戲" },
+            { file: "subtraction.html", name: "一般減法遊戲" },
+            { file: "simple-math.html", name: "一般加、減法遊戲" },
+            { file: "decimal.html", name: "十進位練習遊戲" },
+            { file: "payment.html", name: "購物付錢遊戲 ($1、$10)" },
+            { file: "setclock.html", name: "看時間轉時鐘" },
+            { file: "readclock.html", name: "看時鐘報時間" },
+            { file: "timecarry.html", name: "認識60進位制" },
+            { file: "timestable.html", name: "九九乘法互動遊戲" },
+            { file: "interactivegame.html", name: "讀懂數學問題互動遊戲" }
         ];
 
         const listElement = document.getElementById('game-list');
-        games.forEach(game => {
+        games.forEach((game, index) => {
             const li = document.createElement('li');
-            li.innerHTML = `<div class="box game-link"><a href="${game.file}?v=${version}">${game.name}</a></div>`;
+            const displayNumber = index + 1;
+            li.innerHTML = `<div class="box game-link"><a href="${game.file}?v=${version}">${displayNumber}. ${game.name}</a></div>`;
             listElement.appendChild(li);
         });
     </script>
