@@ -14,33 +14,36 @@
         }
 
         .box {
-            padding: 12px 10px;
+            padding: 14px 15px;
             margin: 10px 0;
             border-radius: 8px;
             font-weight: normal;
-            text-align: center;
             box-shadow: 0 2px 4px rgba(0,0,0,0.15);
             display: flex;
             align-items: center;
-            justify-content: center;
             box-sizing: border-box;
         }
 
         .header-box { 
             background: #0b0573; color: #ffffff; 
             font-size: 1.5em; margin-bottom: 20px;
+            justify-content: center;
+            text-align: center;
         }
         
         .category-box { 
             background: #f1c40f; color: #000000; 
             font-size: 1.1em; width: fit-content; margin: 10px auto; 
+            justify-content: center;
+            text-align: center;
         }
         
         ul { 
             list-style-type: none; 
             padding: 0; 
             display: grid; 
-            grid-template-columns: repeat(4, 1fr); 
+            /* 彈性自動適應不同裝置螢幕大小，保持整齊 */
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); 
             gap: 15px; 
         }
       
@@ -50,13 +53,16 @@
             transition: transform 0.2s;
             height: 100%; 
             margin: 0;
+            /* 讓文字靠左對齊並保留舒適的左側間距 */
+            justify-content: flex-start;
+            padding-left: 20px;
         }
         .game-link:hover { transform: scale(1.02); }
 
         a { text-decoration: none; color: inherit; width: 100%; }
 
         @media (max-width: 768px) {
-            .game-link { font-size: 0.9em; padding: 10px 5px; }
+            .game-link { font-size: 0.95em; padding: 12px 15px; }
             ul { gap: 10px; }
         }
     </style>
